@@ -7,20 +7,26 @@ use Illuminate\Http\Request;
 
 class DestinationController extends Controller
 {
-    
- public function UploadDes(Request $request) {
-    // Validate input
+    // Function to get all destinations (data get)
+    public function getDestinations()
+    {
+        $destinations = DestinationModel::with('subDestinations')->get();
+        return response()->json($destinations);
+    }
 
+    // Function to create a new destination (data set)
+    public function setDestination(Request $request)
+    {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'type' => 'required|in:inbound,outbound',
+            'type' => 'required|string|max:255',
         ]);
 
-        DestinationModel::create($validated);
+        $destination = DestinationModel::create([
+            'name' => $validated['name'],
+            'type' => $validated['type'],
+        ]);
 
-        $data = DestinationModel::all();
-
-        return response()->json($data);
-    
-}
+        return response()->json($destination, 201);
+    }
 }

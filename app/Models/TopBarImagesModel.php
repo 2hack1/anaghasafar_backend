@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class TopbarimagesModel extends Model
+class TopBarImagesModel extends Model
 {
-    protected $primaryKey = 'img-id';
+    protected $primaryKey = 'img_id';
     public $incrementing = true;
     protected $keyType = 'int';
     

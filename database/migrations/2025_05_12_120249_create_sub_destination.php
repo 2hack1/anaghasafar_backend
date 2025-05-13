@@ -12,20 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('sub_destination', function (Blueprint $table) {
-       $table->id('sub_destination_id');              // INT AUTO_INCREMENT PRIMARY KEY
+            $table->id('sub_destination_id');              // INT AUTO_INCREMENT PRIMARY KEY
             $table->string('name', 100);                    // VARCHAR(100) NOT NULL
             $table->string('image_url', 255)->nullable();   // VARCHAR(255), optional
-         
+
             $table->unsignedBigInteger('destination_id');
-
-          // Foreign key to destinations
-
-        //  $table->index('package_id');
-        //     // Foreign key constraint
-        //     $table->foreign('package_id')
-        //           ->references('package_id')
-        //           ->on('packages')
-        //           ->onDelete('cascade');
 
             $table->timestamps();
         });

@@ -7,24 +7,27 @@ use Illuminate\Http\Request;
 
 class TransportsController extends Controller
 {
- // GET all transports
-    public function index()
+    // Get all transport options for a specific package
+    public function getTransports($packageId)
     {
-        return response()->json(TransportsModel::all());
+        $transports = TransportsModel::where('package_id', $packageId)->get();
+        return response()->json($transports);
     }
 
-    // POST a new transport
-    public function store(Request $request)
+    // Create a new transport option for a package
+    public function setTransport(Request $request, $packageId)
     {
         $validated = $request->validate([
-            'mode' => 'required|string|max:50',
-            'details' => 'nullable|string',
+            'mode' => 'required|array',
+            'details' => 'required|string',
         ]);
 
-        $transport = TransportsModel::create($validated);
+        $transport = TransportsModel::create([
+            'mode' => $validated['mode'], // Laravel will auto-cast to JSON
+            'details' => $validated['details'],
+            'package_id' => $packageId,
+        ]);
 
-        return response()->json([
-            'message' => 'Transport added successfully',
-            'data' => $transport
-        ], 201);
-    }}
+        return response()->json($transport, 201);
+    }
+}

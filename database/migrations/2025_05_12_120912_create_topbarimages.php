@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('topbarimages', function (Blueprint $table) {
-           $table->id('img_id');
-         $table->string('topimage',255);   
+            $table->id('img_id');
+            $table->string('topimage', 255);
             $table->timestamps();
         });
     }
@@ -21,8 +21,8 @@ return new class extends Migration
     /**
      * Reverse the migrations.
      */
-    public function down(): void
-    {
+     public function down(): void
+     {
         Schema::dropIfExists('topbarimages');
-    }
+     }
 };

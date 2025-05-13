@@ -16,7 +16,8 @@ class TopBarImageController extends Controller
 
             $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
             $pathimage = $request->input('dest');
-
+            echo dd($request);
+            
             $path = $file->storeAs($pathimage, $filename, 'public');
 
             TopbarimagesModel::create([
