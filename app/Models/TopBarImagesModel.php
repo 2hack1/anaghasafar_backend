@@ -9,8 +9,8 @@ class TopBarImagesModel extends Model
     protected $primaryKey = 'img_id';
     public $incrementing = true;
     protected $keyType = 'int';
-    
-    protected $table = 'topimages';
+
+    protected $table = 'topbarimages';
     protected $fillable = [
         "topimage"
     ];

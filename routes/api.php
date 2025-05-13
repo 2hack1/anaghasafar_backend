@@ -53,4 +53,3 @@ Route::post('/package/{packageId}/month', [MonthController::class, 'setMonthTour
 
 Route::post('/dateOfTour', [DateOfTourController::class, 'store']); // Create date
 Route::get('/dateOfTour', [DateOfTourController::class, 'index']);  // Get all dates
-
