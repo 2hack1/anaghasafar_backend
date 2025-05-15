@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\DatestourModel;
+use Exception;
 use Illuminate\Http\Request;
 
 class DateOfTourController extends Controller
@@ -47,10 +48,11 @@ class DateOfTourController extends Controller
     // POST: Add a new date tour to a specific month
     public function setDateTour(Request $request, $monthTourId)
     {
+        try{
         $validated = $request->validate([
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'availability' => 'required|integer|min:0',
+            'availability' => 'required|string',
         ]);
 
         $date = DatestourModel::create([
@@ -61,5 +63,8 @@ class DateOfTourController extends Controller
         ]);
 
         return response()->json($date, 201);
+    }catch(Exception $er){
+         dd($er);
     }
+}
 }

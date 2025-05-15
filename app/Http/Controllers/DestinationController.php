@@ -3,18 +3,25 @@
 namespace App\Http\Controllers;
 
 use App\Models\DestinationModel;
+use Exception;
 use Illuminate\Http\Request;
 
 class DestinationController extends Controller
 {
-    // Function to get all destinations (data get)
-    public function getDestinations()
-    {
-        $destinations = DestinationModel::with('subDestinations')->get();
-        return response()->json($destinations);
-    }
+public function getDestinations($destinationId)
+{
+    try {
+        $destination = DestinationModel::with('subDestinations')
+            ->where('destination_id', $destinationId)
+            ->firstOrFail();
 
-    // Function to create a new destination (data set)
+        return response()->json($destination);
+    } catch (Exception $er) {
+        return response()->json(['error' => $er->getMessage()], 500);
+    }
+}
+
+    // Function to create a new destination (data set) {its done}
     public function setDestination(Request $request)
     {
         $validated = $request->validate([

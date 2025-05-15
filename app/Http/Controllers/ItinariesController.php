@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\ItinariesModel;
+use Exception;
 
 class ItinariesController extends Controller
 {
@@ -17,15 +18,22 @@ class ItinariesController extends Controller
     // Create a new itinerary for a specific package
     public function setItinerary(Request $request, $packageId)
     {
-        $validated = $request->validate([
-            'day_wise_details' => 'required|string',
-        ]);
+        try {
 
-        $itinerary = ItinariesModel::create([
-            'day_wise_details' => $validated['day_wise_details'],
-            'package_id' => $packageId,
-        ]);
+            //  dd($request->all());
 
-        return response()->json($itinerary, 201);
+            $validated = $request->validate([
+                'day_wise_details' => 'required|array',
+            ]);
+
+            $itinerary = ItinariesModel::create([
+                'day_wise_details' => $validated['day_wise_details'],
+                'package_id' => $packageId,
+            ]);
+
+            return response()->json($itinerary, 201);
+        } catch (Exception $e) {
+            dd($e);
+        }
     }
 }

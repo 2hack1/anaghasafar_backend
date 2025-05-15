@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\Packimg;
+use Exception;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class PacImageController extends Controller
 {
@@ -14,18 +16,34 @@ class PacImageController extends Controller
         return response()->json($images);
     }
 
+
     // Store a new image for a package
     public function setPackageImage(Request $request, $packageId)
     {
-        $validated = $request->validate([
-            'img' => 'required|string|max:255', // Or use 'image' and file handling logic if it's a file
-        ]);
+        try {
+            // dd($request->all());
+            if ($request->hasFile('image')) {
+                $file = $request->file('image');
 
-        $image = Packimg::create([
-            'img' => $validated['img'],
-            'package_id' => $packageId,
-        ]);
+                $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+                $pathimage = $request->input('pac_img_path');
+                $path = $file->storeAs($pathimage, $filename, 'public');
 
-        return response()->json($image, 201);
+                Packimg::create([
+                    'img' => $path,
+                    // 'package_id' => $packageId,
+                    'package_id' => $packageId,
+                ]);
+
+                return response()->json([
+                    'path' => $path,
+                    'url' => 'storage/' . $path
+                ]);
+            }
+
+            // return response()->json(['error' => 'No image uploaded'], 400);
+        } catch (Exception $er) {
+            dd($er);
+        }
     }
 }

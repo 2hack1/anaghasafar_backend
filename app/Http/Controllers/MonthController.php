@@ -71,6 +71,7 @@ class MonthController extends Controller
     // Create a new month tour for a package
     public function setMonthTour(Request $request, $packageId)
     {
+        try{
         $validated = $request->validate([
             'month' => 'required|string|max:20',
             'year' => 'required|integer',
@@ -83,5 +84,8 @@ class MonthController extends Controller
         ]);
 
         return response()->json($monthTour, 201);
+    }catch(Exception $c){
+        dd($c);
+    }
     }
 }

@@ -10,7 +10,7 @@ class Sub_DestinationModel extends Model
     use HasFactory;
 
     protected $table = 'sub_destination'; // Explicit table name
-     public $incrementing = true;
+    public $incrementing = true;
     protected $keyType = 'int';
     protected $primaryKey = 'sub_destination_id'; // Custom primary key
 

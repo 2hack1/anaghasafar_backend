@@ -10,7 +10,8 @@ class Packimg extends Model
     use HasFactory;
 
     protected $table = 'pacimgs';
-     public $incrementing = true;
+    
+    public $incrementing = true;
     protected $keyType = 'int';
     protected $primaryKey = 'packageimg_id';
 
@@ -19,9 +20,6 @@ class Packimg extends Model
         'package_id',
     ];
 
-    /**
-     * Relationship: Pacimg belongs to a Package
-     */
     public function package()
     {
         return $this->belongsTo(PackageModel::class, 'package_id', 'package_id');

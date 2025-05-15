@@ -18,6 +18,7 @@ class MonthTourModel extends Model
     protected $fillable = [
         'month',
         'year',
+        'package_id',
     ];
 
     public function datestours()

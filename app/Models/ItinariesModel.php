@@ -19,9 +19,10 @@ class ItinariesModel extends Model
         'package_id',
     ];
 
-    /**
-     * Relationship: Itinerary belongs to a Package
-     */
+    protected $casts=[
+         'day_wise_details' => 'array',
+    ];
+
     public function package()
     {
         return $this->belongsTo(PackageModel::class, 'package_id', 'package_id');
