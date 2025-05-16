@@ -8,18 +8,57 @@ use Illuminate\Http\Request;
 
 class DestinationController extends Controller
 {
-public function getDestinations($destinationId)
+    public function getDestinations($destinationId)
+    {
+        try {
+            $destination = DestinationModel::with('subDestinations')
+                ->where('destination_id', $destinationId)
+                ->firstOrFail();
+
+            return response()->json($destination);
+        } catch (Exception $er) {
+            return response()->json(['error' => $er->getMessage()], 500);
+        }
+    }
+
+    // public function getsingle($destinationId)
+    // {
+    //     try {
+    //         $destination = DestinationModel::where('destination_id', $destinationId)->firstOrFail();
+
+    //         return response()->json($destination);
+    //     } catch (Exception $er) {
+    //         return response()->json(['error' => $er->getMessage()], 500);
+    //     }
+    // }
+
+  public function getsingle()
 {
     try {
-        $destination = DestinationModel::with('subDestinations')
-            ->where('destination_id', $destinationId)
-            ->firstOrFail();
+        $destinations = DestinationModel::all(); // fetch all rows
 
-        return response()->json($destination);
-    } catch (Exception $er) {
-        return response()->json(['error' => $er->getMessage()], 500);
+        return response()->json($destinations);
+    } catch (Exception $e) {
+        dd($e);
+        // return response()->json(['error' => $e->getMessage()], 500);
     }
 }
+
+    // get sub_destination with limit
+    public function getwithLimit($destinationId)
+    {
+        try {
+            $destination = DestinationModel::with(['subDestinations' => function ($query) {
+                $query->limit(2); // limit subDestinations to 2
+            }])
+                ->where('destination_id', $destinationId)
+                ->firstOrFail();
+
+            return response()->json($destination);
+        } catch (Exception $er) {
+            return response()->json(['error' => $er->getMessage()], 500);
+        }
+    }
 
     // Function to create a new destination (data set) {its done}
     public function setDestination(Request $request)

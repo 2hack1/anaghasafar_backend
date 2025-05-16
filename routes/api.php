@@ -21,12 +21,16 @@ Route::get('/greeting', function () {
 });
 
 Route::prefix('destination')->group(function () {
-    Route::get('/{dest_id}', [DestinationController::class, 'getDestinations']);
     Route::post('/', [DestinationController::class, 'setDestination']);
+    Route::get('/{dest_id}', [DestinationController::class, 'getDestinations']); //get_subdestinations
+    Route::get('/{dest_id}/limit', [DestinationController::class, 'getwithLimit']); //get_subdestinations
+    Route::get('/all/des', [DestinationController::class, 'getsingle']); //get_subdestinations
+    
 });
 Route::prefix('subdestination')->group(function () {
     Route::get('/', [Sub_DestinationController::class, 'index']); // GET all
-    Route::get('/{sub_destinationId}', [Sub_DestinationController::class, 'show']);
+    Route::get('/{sub_destinationId}', [Sub_DestinationController::class, 'show']); //getPackages
+    Route::post('/{sub_destinationId}', [Sub_DestinationController::class, 'store']);
 });
 
 Route::prefix('itineraries')->group(function () {
