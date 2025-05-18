@@ -68,5 +68,6 @@ Route::get('/topimagess', [TopBarImageController::class, 'getImages']);
 // ************************************************ done
 Route::prefix('packages')->group(function () {
     Route::get('/{sub_des_id}', [PackagesController::class, 'getPackage']);
+    Route::get('/{packageId}/details', [PackagesController::class, 'getPackageDetails']);
     Route::post('/{sub_des_id}', [PackagesController::class, 'setPackage']);
 });

@@ -8,15 +8,26 @@ use Illuminate\Support\Facades\Validator;
 
 class PackagesController extends Controller
 {
-    // GET: Fetch all packages with full relations
-  
 
-    // GET: Fetch a single package by ID
-    public function getPackage($sub_des_id)
-    {
-               $packages = PackageModel::where('sub_destination_id', $sub_des_id)->get();
-        return response()->json($packages);
-    }
+public function getPackage($sub_des_id)
+{
+    $packages = PackageModel::with('images')
+        ->where('sub_destination_id', $sub_des_id)
+        ->get();
+
+    return response()->json($packages);
+}
+
+public function getPackageDetails($packageId)
+{
+    $packages = PackageModel::with('images')
+        ->where('package_id', $packageId)
+        ->get();
+
+    return response()->json($packages);
+}
+
+
 
     public function setPackage(Request $request, $sub_des_id)
 {

@@ -20,18 +20,6 @@ class DestinationController extends Controller
             return response()->json(['error' => $er->getMessage()], 500);
         }
     }
-
-    // public function getsingle($destinationId)
-    // {
-    //     try {
-    //         $destination = DestinationModel::where('destination_id', $destinationId)->firstOrFail();
-
-    //         return response()->json($destination);
-    //     } catch (Exception $er) {
-    //         return response()->json(['error' => $er->getMessage()], 500);
-    //     }
-    // }
-
   public function getsingle()
 {
     try {
@@ -49,7 +37,7 @@ class DestinationController extends Controller
     {
         try {
             $destination = DestinationModel::with(['subDestinations' => function ($query) {
-                $query->limit(2); // limit subDestinations to 2
+                $query->limit(6); // limit subDestinations to 2
             }])
                 ->where('destination_id', $destinationId)
                 ->firstOrFail();
