@@ -47,8 +47,8 @@ return [
     |
     */
 
-    'expiration' => null,
-
+    // Minutes me hota hai ye
+    'expiration' => 5,
     /*
     |--------------------------------------------------------------------------
     | Token Prefix
@@ -62,7 +62,7 @@ return [
     |
     */
 
-    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', ''),
+    'token_prefix' => env('SANCTUM_TOKEN_PREFIX', 'anagha_'),
 
     /*
     |--------------------------------------------------------------------------

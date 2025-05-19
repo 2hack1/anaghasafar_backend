@@ -15,6 +15,23 @@ class ItinariesController extends Controller
         return response()->json($itineraries);
     }
 
+
+    public function deleteItinerary($packageId)
+{
+    try{
+    $deleted = ItinariesModel::where('package_id', $packageId)->delete();
+    
+    if ($deleted) {
+        return response()->json(['message' => 'Itinerary deleted successfully.']);
+    } else {
+        return response()->json(['message' => 'No itinerary found for the given package ID.'], 404);
+    }
+}catch(Exception $e){
+    dd($e);
+}
+}
+
+
     // Create a new itinerary for a specific package
     public function setItinerary(Request $request, $packageId)
     {
