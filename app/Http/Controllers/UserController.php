@@ -63,7 +63,7 @@ class UserController extends Controller
     {
         try {
             $request->validate([
-                'name'     => 'required|string|max:255',
+                'name'     => 'required|string|max:500',
                 'email'    => 'required|string|email|unique:users,email',
                 'password' => 'required|string|min:6|confirmed',
             ]);
@@ -90,6 +90,7 @@ class UserController extends Controller
     // 🔐 User Login
     public function login(Request $request)
     {
+        try{
         $request->validate([
             'email'    => 'required|email',
             'password' => 'required'
@@ -111,8 +112,11 @@ class UserController extends Controller
             'token_type'   => 'Bearer',
             'user'         => $user
         ]);
+    }catch(Exception $e){
+      dd($e);
+  
     }
-
+    }
 
     // 🔓 User Logout
     public function logout(Request $request)

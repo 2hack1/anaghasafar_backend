@@ -3,6 +3,7 @@
 use App\Http\Controllers\DateOfTourController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DestinationController;
+use App\Http\Controllers\FourCardsController;
 use App\Http\Controllers\ItinariesController;
 use App\Http\Controllers\MonthController;
 use App\Http\Controllers\PacImageController;
@@ -11,6 +12,7 @@ use App\Http\Controllers\Sub_DestinationController;
 use App\Http\Controllers\TopBarImageController;
 use App\Http\Controllers\TransportsController;
 use App\Http\Controllers\UserController;
+use App\Models\FourCards;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 
@@ -111,3 +113,9 @@ Route::get('', function () {
 Route::get('protected-route', function () {
     dd('this is protected route');
 })->middleware('auth:sanctum');
+
+// four cards
+
+Route::get('/four-cards', [FourCardsController::class, 'get']);         // Get all
+Route::post('/four-cards', [FourCardsController::class, 'set']);        // Set/Create
+Route::put('/four-cards/{id}', [FourCardsController::class, 'upadate']);   // Update
