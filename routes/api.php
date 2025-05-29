@@ -12,18 +12,8 @@ use App\Http\Controllers\Sub_DestinationController;
 use App\Http\Controllers\TopBarImageController;
 use App\Http\Controllers\TransportsController;
 use App\Http\Controllers\UserController;
-use App\Models\FourCards;
-use App\Models\User;
-use Illuminate\Support\Facades\Hash;
 
-Route::get('/', function () {
-    $name = "AYush";
-    dd($name);
-});
 
-Route::get('/greeting', function () {
-    return response()->json(['message' => 'Hello from Laravel 12!']);
-});
 
 Route::prefix('destination')->group(function () {
     Route::post('/', [DestinationController::class, 'setDestination']);
@@ -92,29 +82,6 @@ Route::middleware('auth')->group(function () {
     Route::post('/logout', [UserController::class, 'logout']);
     Route::get('/user',    [UserController::class, 'user']);
 });
-
-
-Route::get('/create-ayush', function () {
-    $user = User::create([
-        'name' => 'Ayush Sharma',
-        'email' => 'ayush@example.com', // Email should be valid format
-        'password' => Hash::make('Ayush'),
-    ]);
-
-    $token = $user->createToken('token-name')->plainTextToken;
-
-    dd($token);
-});
-Route::get('', function () {
-    dd('This is login route');
-})->name('login');
-
-// default --> name -> login
-Route::get('protected-route', function () {
-    dd('this is protected route');
-})->middleware('auth:sanctum');
-
-// four cards
 
 Route::get('/four-cards', [FourCardsController::class, 'get']);         // Get all
 Route::post('/four-cards', [FourCardsController::class, 'set']);        // Set/Create
