@@ -16,8 +16,10 @@ return new class extends Migration
                  $table -> string('your_address');
                  $table -> string ('destination_address');
                  $table -> string ('email');
-                 $table -> integer ('check_in');
-                 $table -> integer('check_out');
+                 $table -> date ('check_in');
+                 $table -> date ('check_out');
+                 $table -> integer ('adults');
+                 $table -> integer ('children');
 
 
          });

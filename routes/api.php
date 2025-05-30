@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\FourCardsController;
 use App\Http\Controllers\ItinariesController;
+use App\Http\Controllers\MakeTripController;
 use App\Http\Controllers\MonthController;
 use App\Http\Controllers\PacImageController;
 use App\Http\Controllers\PackagesController;
@@ -65,6 +66,8 @@ Route::get('/topimagess', [TopBarImageController::class, 'getImages']);
 Route::prefix('packages')->group(function () {
     Route::get('/{sub_des_id}', [PackagesController::class, 'getPackage']);
     Route::get('/{packageId}/details', [PackagesController::class, 'getPackageDetails']);
+// **********************  with filter **********************
+    Route::post('/{packageId}/details/filter', [PackagesController::class, 'filterPackages']);
     Route::post('/{sub_des_id}', [PackagesController::class, 'setPackage']);
 });
 
@@ -86,3 +89,10 @@ Route::middleware('auth')->group(function () {
 Route::get('/four-cards', [FourCardsController::class, 'get']);         // Get all
 Route::post('/four-cards', [FourCardsController::class, 'set']);        // Set/Create
 Route::put('/four-cards/{id}', [FourCardsController::class, 'upadate']);   // Update
+
+// make your own trip
+  Route::post('/trips', [MakeTripController::class, 'set']);  
+  Route::get('/trips', [MakeTripController::class, 'get']);
+  Route::delete('/trips/{id}',[MakeTripController::class, 'deleted']);  
+
+
