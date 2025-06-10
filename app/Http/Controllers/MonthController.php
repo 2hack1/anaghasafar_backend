@@ -58,16 +58,6 @@ use PhpParser\Node\Stmt\TryCatch;
 
 class MonthController extends Controller
 {
-    // Get all month tours with date tours for a specific package
-    // public function getMonthTours($packageId)
-    // {
-    //     $months = MonthTourModel::with('datestours')
-    //         ->where('package_id', $packageId)
-    //         ->get();
-
-    //     return response()->json($months);
-    // }
-
     public function getMonthTours($packageId)
 {
     $monthsWithDates = MonthTourModel::with('datestours')

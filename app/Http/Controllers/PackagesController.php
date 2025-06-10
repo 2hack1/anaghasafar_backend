@@ -45,6 +45,7 @@ class PackagesController extends Controller
             'departure_point'    => 'required|string|max:255',
             'about_trip'         => 'required|string',
             'sub_destination_id' => 'required|exists:sub_destination,sub_destination_id',
+        
         ]);
 
         if ($validator->fails()) {
@@ -59,100 +60,120 @@ class PackagesController extends Controller
     }
 
 
-    // ****************************  for filter  this cheking under the process
-    // public function filterPackages(Request $request, $sub_des_id)
-    // { 
-    //     try{
-    //     $filters = $request->input('filters'); // array like ['Wellness', '4 day', 'International']
-
-    //     $query = PackageModel::with('images')
-    //         ->where('sub_destination_id', $sub_des_id); // Always filter by sub_destination_id
-
-    //     if ($filters && is_array($filters) && count($filters) > 0) {
-    //         // Example: match filters to `package_type` (or adjust as needed)
-    //         $query->where(function ($q) use ($filters) {
-    //             foreach ($filters as $filter) {
-    //                 $q->orWhere('package_type', 'LIKE', "%{$filter}%");
-    //                 // or use ->orWhereIn(...) if it's an exact match
-    //             }
-    //         });
-
-    //     }
-
-    //     $packages = $query->get();
-
-    //     return response()->json($packages);
-    // }catch(Exception $d){
-    //     dd($d);
-    // }
-    // }
-
-
-    // public function filterPackages(Request $request, $sub_des_id)
-    // {
-    //     try {
-           
-    //         $filters = $request->input('filters'); // Should be an array
-    //              dd($filters);
-    //         // \Log::info('Received filters:', ['filters' => $filters]);
-
-    //         $query = PackageModel::with('images')
-    //             ->where('sub_destination_id', $sub_des_id);
-        
-    //         if ($filters && is_array($filters) && count($filters) > 0) {
-    //             $query->where(function ($q) use ($filters) {
-    //                 foreach ($filters as $filter) {
-    //                     $q->orWhere('type', 'LIKE', "%{$filter}%"); // example if column name is 'type'
-    //                 }
-    //             });
-    //         }
-
-    //         $packages = $query->get();
-
-    //         return response()->json($packages);
-    //     } catch (Exception $e) {
-    //         dd($e);
-    //     }
-    // }
     public function filterPackages(Request $request, $sub_des_id)
-{
-    try {
-        $filters = $request->input('filters'); // Should be an array
+    {
+        try {
+            $filters = $request->input('filters', []);
+            $priceFilters = $request->input('priceFilters', []);
 
-        $query = PackageModel::with('images')
-            ->where('sub_destination_id', $sub_des_id);
+            $query = PackageModel::with('images')
+                ->where('sub_destination_id', $sub_des_id);
 
-        // Only apply filters if they're not empty and not just "All"
-        if ($filters && is_array($filters) && count($filters) > 0 && !in_array('All', $filters)) {
-            $query->where(function ($q) use ($filters) {
-                foreach ($filters as $filter) {
-                    switch ($filter) {
-                        case '1 Day':
+            // Apply TYPE filters (like duration, category)
+            if (!empty($filters)) {
+                $query->where(function ($q) use ($filters) {
+                    foreach ($filters as $filter) {
+                        if ($filter === '1 Day') {
                             $q->orWhere('duration_days', 1);
-                            break;
-                        case 'More Days':
+                        } elseif ($filter === 'More Days') {
                             $q->orWhere('duration_days', '>', 4);
-                            break;
-                        case 'Less Than 4 Days':
-                            $q->orWhere('duration_days', '<', 4);
-                            break;
-                        case '4 Days':
+                        } elseif ($filter === '4 Days') {
                             $q->orWhere('duration_days', 4);
-                            break;
-                        case 'International':
-                        case 'Wellness':
-                            $q->orWhere('type', 'LIKE', "%{$filter}%");
-                            break;
+                        } elseif ($filter === 'Less Than 4 Days') {
+                            $q->orWhere('duration_days', '<', 4);
+                        } elseif ($filter === 'International') {
+                            $q->orWhere('type', 'LIKE', '%International%');
+                        } elseif ($filter === 'Wellness') {
+                            $q->orWhere('type', 'LIKE', '%Wellness%');
+                        }
+                        // "All" means no filter, so we skip
                     }
-                }
-            });
+                });
+            }
+
+            // Apply PRICE filters properly
+            if (!empty($priceFilters)) {
+                $query->where(function ($q) use ($priceFilters) {
+                    foreach ($priceFilters as $filter) {
+                        if ($filter === 'Expensive Tours') {
+                            $q->orWhere('price_trip', '>', 20000);
+                        } elseif ($filter === 'Under of Price 10000') {
+                            $q->orWhere('price_trip', '<', 10000);
+                        } elseif ($filter === 'Over of Price 6000') {
+                            $q->orWhere('price_trip', '>', 6000);
+                        } elseif ($filter === 'Low Pricingg') {
+                            $q->orWhere('price_trip', '<', 5000);
+                        }
+                    }
+                });
+            }
+
+            $packages = $query->get();
+            return response()->json($packages);
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
-
-        $packages = $query->get();
-        return response()->json($packages);
-    } catch (Exception $e) {
-        return response()->json(['error' => $e->getMessage()], 500);
     }
-}
 
+
+    public function check(Request $request)
+    {
+        try {
+            $price = $request->input('price');
+            $month = $request->input('duration');
+            $destination = $request->input('place_name');
+
+            // First: Exact Match
+            $exactQuery = PackageModel::with('images');
+
+            if (!empty($price)) {
+                $exactQuery->where('price_trip', '=', $price);
+            }
+
+            if (!empty($month)) {
+                $exactQuery->where('duration_days', '=', $month);
+            }
+
+            if (!empty($destination)) {
+                $exactQuery->where('place_name', '=', $destination);
+            }
+
+            $exactResults = $exactQuery->get();
+
+            // IDs of exact results (to avoid duplicate entries in fallback)
+            $exactIds = $exactResults->pluck('package_id')->toArray();
+
+            // Then: Extra Results (less than price and same month)
+            $extraQuery = PackageModel::with('images');
+
+            if (!empty($price)) {
+                $extraQuery->where('price_trip', '<=', $price);
+            }
+
+            if (!empty($exactIds)) {
+                $extraQuery->whereNotIn('package_id', $exactIds);
+            }
+
+            $extraResults = $extraQuery->get();
+
+            // Merge both
+            $finalResults = $exactResults->merge($extraResults);
+
+            return response()->json([
+                'status' => true,
+                'total_count' => $finalResults->count(),
+                'exact_count' => $exactResults->count(),
+                'extra_count' => $extraResults->count(),
+                'data' => $finalResults
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Error occurred',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
+
+   
 }

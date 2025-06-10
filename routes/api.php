@@ -23,11 +23,17 @@ Route::prefix('destination')->group(function () {
     Route::get('/all/des', [DestinationController::class, 'getsingle']); //get_subdestinations
 
 });
+Route::put('/destination/update/{id}', [DestinationController::class, 'update']);
+Route::delete('/destination/delete/{id}', [DestinationController::class, 'destroy']);
+
+
 Route::prefix('subdestination')->group(function () {
     Route::get('/', [Sub_DestinationController::class, 'index']); // GET all
     Route::get('/{sub_destinationId}', [Sub_DestinationController::class, 'show']); //getPackages
     Route::post('/{sub_destinationId}', [Sub_DestinationController::class, 'store']);
 });
+Route::put('/ssubdestination/update/{id}', [Sub_DestinationController::class, 'update']);
+Route::delete('/ssubdestination/delete/{sub_destination_id}', [Sub_DestinationController::class, 'destroy']);
 
 Route::prefix('itineraries')->group(function () {
 
@@ -66,10 +72,12 @@ Route::get('/topimagess', [TopBarImageController::class, 'getImages']);
 Route::prefix('packages')->group(function () {
     Route::get('/{sub_des_id}', [PackagesController::class, 'getPackage']);
     Route::get('/{packageId}/details', [PackagesController::class, 'getPackageDetails']);
-// **********************  with filter **********************
+    // **********************  with filter **********************
     Route::post('/{packageId}/details/filter', [PackagesController::class, 'filterPackages']);
     Route::post('/{sub_des_id}', [PackagesController::class, 'setPackage']);
 });
+// packages finding
+Route::post('/filter/homepage', [PackagesController::class, 'check']);
 
 // user***************************************
 
@@ -91,8 +99,6 @@ Route::post('/four-cards', [FourCardsController::class, 'set']);        // Set/C
 Route::put('/four-cards/{id}', [FourCardsController::class, 'upadate']);   // Update
 
 // make your own trip
-  Route::post('/trips', [MakeTripController::class, 'set']);  
-  Route::get('/trips', [MakeTripController::class, 'get']);
-  Route::delete('/trips/{id}',[MakeTripController::class, 'deleted']);  
-
-
+Route::post('/trips', [MakeTripController::class, 'set']);
+Route::get('/trips', [MakeTripController::class, 'get']);
+Route::delete('/trips/{id}', [MakeTripController::class, 'deleted']);

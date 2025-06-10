@@ -20,19 +20,7 @@ return new class extends Migration
             $table->string('origin', 100)->nullable();
             $table->string('departure_point', 100)->nullable();
             $table->string('about_trip');
-
-
-
             $table->unsignedBigInteger('sub_destination_id'); 
-            // Foreign keys
-            
-            
-            // $table->unsignedBigInteger('packageimg_id');
-            // 
-            // $table->unsignedBigInteger('itinerary_id')->nullable();
-            // $table->unsignedBigInteger('tour_month_id')->nullable();
-            // $table->unsignedBigInteger('transport_id')->nullable();
-
             $table->timestamps();
             $table->softDeletes(); // <-- Adds soft delete column
 

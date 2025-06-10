@@ -63,4 +63,41 @@ class DestinationController extends Controller
 
         return response()->json($destination, 201);
     }
+
+
+
+     public function update(Request $request, $id)
+    {
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'required|string|max:255',
+        ]);
+
+        $destination = DestinationModel::find($id);
+
+        if (!$destination) {
+            return response()->json(['message' => 'Destination not found'], 404);
+        }
+
+        $destination->update([
+            'name' => $request->input('name'),
+            'type' => $request->input('type'),
+        ]);
+
+        return response()->json(['message' => 'Destination updated successfully', 'data' => $destination], 200);
+    }
+
+    public function destroy($id)
+    {
+        $destination = DestinationModel::find($id);
+
+        if (!$destination) {
+            return response()->json(['message' => 'Destination not found'], 404);
+        }
+
+        $destination->delete();
+
+        return response()->json(['message' => 'Destination deleted successfully'], 200);
+    }
+
 }

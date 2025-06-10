@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Sub_DestinationModel extends Model
 {
     use HasFactory;
-
+    
     protected $table = 'sub_destination'; // Explicit table name
     public $incrementing = true;
     protected $keyType = 'int';
