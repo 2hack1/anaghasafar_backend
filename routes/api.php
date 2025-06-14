@@ -52,17 +52,22 @@ Route::prefix('transports')->group(function () {
 Route::prefix('months')->group(function () {
     Route::get('/{packageId}', [MonthController::class, 'getMonthTours']);
     Route::post('/{packageId}', [MonthController::class, 'setMonthTour']);
+    
 });
+Route::post('/set-multiple-months', [MonthController::class, 'setMultipleMonthTour']);
+
 Route::prefix('dateOfTour')->group(function () {
-    Route::post('/{monthTourId}', [DateOfTourController::class, 'setDateTour']); // Create date
+    // Route::post('/{monthTourId}', [DateOfTourController::class, 'setDateTour']); // Create date
     Route::get('/{monthTourId}', [DateOfTourController::class, 'getDateTours']);  // Get all dates
 });
+    Route::post('dateOfTour/a', [DateOfTourController::class, 'setDateTour']); // Create date
 
 Route::prefix('pac_image')->group(function () {
     Route::get('/{packageId}', [PacImageController::class, 'getPackageImages']);
     Route::post('/{packageId}', [PacImageController::class, 'setPackageImage']);
+    Route::post('update/{packageId}', [PacImageController::class, 'updateImage']);
 });
-
+ 
 
 Route::post('/topimg', [TopBarImageController::class, 'top']);
 Route::get('/topimagess', [TopBarImageController::class, 'getImages']);
@@ -75,6 +80,10 @@ Route::prefix('packages')->group(function () {
     // **********************  with filter **********************
     Route::post('/{packageId}/details/filter', [PackagesController::class, 'filterPackages']);
     Route::post('/{sub_des_id}', [PackagesController::class, 'setPackage']);
+    Route::delete('/delete/{package_id}', [PackagesController::class, 'deleteByPackageId']);
+    Route::post('/update/{package_id}', [PackagesController::class, 'updatePackage']);
+
+
 });
 // packages finding
 Route::post('/filter/homepage', [PackagesController::class, 'check']);

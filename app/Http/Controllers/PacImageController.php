@@ -31,7 +31,6 @@ class PacImageController extends Controller
 
                 Packimg::create([
                     'img' => $path,
-                    // 'package_id' => $packageId,
                     'package_id' => $packageId,
                 ]);
 
@@ -46,4 +45,32 @@ class PacImageController extends Controller
             dd($er);
         }
     }
+
+
+    public function updateImage(Request $request, $packageId)
+
+    {
+        try{
+
+        
+    $request->validate([
+        'img' => 'required|image',
+        'pac_img_path' => 'required|string'
+    ]);
+
+    $path = $request->file('img')->store('public/package_images');
+
+    Packimg::create([
+        'package_id' => $packageId,
+        'img' => $path,
+        // 'pac_img_path' => $request->pac_img_path
+    ]);
+
+    return response()->json(['status' => true, 'message' => 'Image updated']);
+}catch(Exception $a){
+    dd($a);
+}
+}
+
+
 }

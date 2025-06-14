@@ -6,6 +6,7 @@ use App\Models\PackageModel;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\DB;
 use Laravel\Pail\ValueObjects\Origin\Console;
 
 class PackagesController extends Controller
@@ -58,6 +59,85 @@ class PackagesController extends Controller
 
         return response()->json($package, 201);
     }
+
+
+
+public function deleteByPackageId($package_id)
+{
+    DB::beginTransaction();
+
+    try {
+        $package = PackageModel::with(['images', 'itineraries', 'monthTours.datesTours', 'transports'])
+                    ->where('package_id', $package_id)
+                    ->firstOrFail();
+
+        // Delete related transports
+        $package->transports()->delete();
+
+        // Delete related itineraries
+        $package->itineraries()->delete();
+
+        // Delete related images
+        $package->images()->delete();
+
+        // Delete datestours under each month
+        foreach ($package->monthTours as $monthTour) {
+            $monthTour->datesTours()->delete();
+        }
+
+        // Delete monthTours
+        $package->monthTours()->delete();
+
+        // Finally, delete the package itself (hard delete)
+        $package->forceDelete(); // ← permanently delete from packages table
+
+        DB::commit();
+
+        return response()->json(['status' => true, 'message' => 'Package and related data deleted permanently.']);
+    } catch (\Exception $e) {
+        DB::rollBack();
+        return response()->json([
+            'status' => false,
+            'message' => 'Failed to delete package.',
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+}
+
+
+
+
+
+public function updatePackage(Request $request, $package_id){
+
+try{
+    {
+        $validated = $request->validate([
+            'package_code'       => 'required|string|max:50',
+            'place_name'         => 'required|string|max:100',
+            'price_trip'         => 'required|numeric',
+            'duration_days'      => 'required|integer',
+            'origin'             => 'required|string|max:100',
+            'departure_point'    => 'required|string|max:100',
+            'about_trip'         => 'nullable|string',
+            'sub_destination_id' => 'required|integer',
+        ]);
+
+    $package = PackageModel::findOrFail($package_id);
+
+    $package->update($validated);
+    
+    return response()->json([
+        'status' => true,
+        'message' => 'Package updated successfully.',
+        'data' => $package
+    ]);
+    }
+}catch(Exception $a){
+    dd($a);
+}
+}
+
 
 
     public function filterPackages(Request $request, $sub_des_id)
