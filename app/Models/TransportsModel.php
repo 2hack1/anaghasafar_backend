@@ -13,7 +13,7 @@ class TransportsModel extends Model
      public $incrementing = true;
     protected $keyType = 'int';
     protected $primaryKey = 'transport_id';
-
+ 
     protected $fillable = [
         'mode',
         'details',

@@ -51,44 +51,59 @@ class MonthController extends Controller
 
 
 
+public function updateMultipleMonthTour(Request $request)
+{
+    try {
+        $data = $request->all();
 
-    //     public function setMultipleMonthTour(Request $request)
-    // {
-    //     try {
-    //         $data = $request->all();  // Expecting an array
+        if (!is_array($data)) {
+            return response()->json([
+                'error' => 'Invalid input format. Expected an array of objects.'
+            ], 400);
+        }
 
-    //         foreach ($data as $index => $item) {
-    //             $validator = $request->validate($item, [
-    //                 'month' => 'required|string|max:20',
-    //                 'year' => 'required|integer',
-    //                 'package_id' => 'required|integer|exists:packages,id'
-    //             ]);
+        $updatedRecords = [];
 
-    //             // if ($validator->fails()) {
-    //             //     return response()->json([
-    //             //         'error' => "Validation failed at index $index",
-    //             //         'messages' => $validator->errors()
-    //             //     ], 422);
-    //             // }
-    //         }
+        foreach ($data as $index => $item) {
+            // Validate each item
+            $validator = Validator::make($item, [
+                'tour_month_id' => 'required|integer|exists:monthtour,tour_month_id',
+                'month' => 'required|string|max:20',
+                'year' => 'required|integer',
+                'package_id' => 'required|integer',
+            ]);
 
-    //         $insertData = array_map(function ($item) {
-    //             return [
-    //                 'month' => $item['month'],
-    //                 'year' => $item['year'],
-    //                 'package_id' => $item['package_id'],
-    //                 'created_at' => now(),
-    //                 'updated_at' => now()
-    //             ];
-    //         }, $data);
+            if ($validator->fails()) {
+                return response()->json([
+                    'error' => "Validation failed at index $index",
+                    'messages' => $validator->errors()
+                ], 422);
+            }
 
-    //         MonthTourModel::insert($insertData);
+            // Find and update the record
+            $monthTour = MonthTourModel::find($item['tour_month_id']);
+            $monthTour->update([
+                'month' => $item['month'],
+                'year' => $item['year'],
+                'package_id' => $item['package_id'],
+            ]);
 
-    //         return response()->json(['message' => 'Month tours saved successfully'], 201);
-    //     } catch (Exception $e) {
-    //         return response()->json(['error' => 'Something went wrong', 'details' => $e->getMessage()], 500);
-    //     }
-    // }
+            $updatedRecords[] = $monthTour;
+        }
+
+        return response()->json([
+            'message' => 'MonthTour records updated successfully.',
+            'data' => $updatedRecords,
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Something went wrong',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+}
+
 
 
     public function setMultipleMonthTour(Request $request)

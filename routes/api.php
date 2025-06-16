@@ -40,18 +40,22 @@ Route::prefix('itineraries')->group(function () {
     Route::get('/{packageId}', [ItinariesController::class, 'getItineraries']);
     Route::post('/{packageId}', [ItinariesController::class, 'setItinerary']);
     Route::delete('/{packageId}', [ItinariesController::class, 'deleteItinerary']);
+    Route::post('update/{packageId}', [ItinariesController::class, 'updateItineraries']);
 });
 
 
 Route::prefix('transports')->group(function () {
     Route::get('/{packageId}', [TransportsController::class, 'getTransports']);
     Route::post('/{packageId}', [TransportsController::class, 'setTransport']);
+    Route::post('/update/{packageId}', [TransportsController::class, 'updateTransport']);
 });
 
 
 Route::prefix('months')->group(function () {
     Route::get('/{packageId}', [MonthController::class, 'getMonthTours']);
     Route::post('/{packageId}', [MonthController::class, 'setMonthTour']);
+    Route::post('/update/multiple', [MonthController::class, 'updateMultipleMonthTour']);
+
     
 });
 Route::post('/set-multiple-months', [MonthController::class, 'setMultipleMonthTour']);
@@ -61,11 +65,12 @@ Route::prefix('dateOfTour')->group(function () {
     Route::get('/{monthTourId}', [DateOfTourController::class, 'getDateTours']);  // Get all dates
 });
     Route::post('dateOfTour/a', [DateOfTourController::class, 'setDateTour']); // Create date
+    Route::post('dateOfTour/multipleupdate', [DateOfTourController::class, 'updateDateTours']); // Create date
 
 Route::prefix('pac_image')->group(function () {
     Route::get('/{packageId}', [PacImageController::class, 'getPackageImages']);
     Route::post('/{packageId}', [PacImageController::class, 'setPackageImage']);
-    Route::post('update/{packageId}', [PacImageController::class, 'updateImage']);
+    Route::post('update/{packageId}', [PacImageController::class, 'updatePackageImage']);
 });
  
 

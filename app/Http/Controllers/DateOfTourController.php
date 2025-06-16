@@ -5,38 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\DatestourModel;
 use Exception;
 use Illuminate\Http\Request;
+ use Illuminate\Support\Facades\Validator;
 
 class DateOfTourController extends Controller
-// {
-//     public function store(Request $request)
-//     {
-//         $request->validate([
-//             'start_date' => "required",
-//             'end_date' => "required",
-//             'availability' => "required",
-//              'tour_month_id'=>"required",
-//         ]);
 
-//         $date = DatestourModel::create([
-//             'start_date' => $request->start_date,
-//             'end_date' => $request->end_date,
-//             "availability" => $request->availability,
-//              'tour_month_id'=>$request->tour_month_id
-//         ]);
-
-//         return response()->json([
-//             'message' => 'Tour date created successfully',
-//             'data' => $date
-//         ], 201);
-//     }
-
-//     // Get all dates
-//     public function index()
-//     {
-//         $dates = DatestourModel::all();
-//         return response()->json($dates);
-//     }
-// }
 {
     // GET: Get all tour dates for a month
     public function getDateTours($monthTourId)
@@ -45,28 +17,7 @@ class DateOfTourController extends Controller
         return response()->json($dates);
     }
 
-    // POST: Add a new date tour to a specific month
-    //     public function setDateTour(Request $request, $monthTourId)
-    //     {
-    //         try{
-    //         $validated = $request->validate([
-    //             'start_date' => 'required|date',
-    //             'end_date' => 'required|date|after_or_equal:start_date',
-    //             'availability' => 'required|string',
-    //         ]);
-
-    //         $date = DatestourModel::create([
-    //             'start_date' => $validated['start_date'],
-    //             'end_date' => $validated['end_date'],
-    //             'availability' => $validated['availability'],
-    //             'tour_month_id' => $monthTourId,
-    //         ]);
-
-    //         return response()->json($date, 201);
-    //     }catch(Exception $er){
-    //          dd($er);
-    //     }
-    // }
+    
 
     public function setDateTour(Request $request)
     {
@@ -82,11 +33,11 @@ class DateOfTourController extends Controller
 
             foreach ($validated as $data) {
                 $exists = DatestourModel::where('start_date', $data['start_date'])
-                    ->where('end_date', $data['end_date'])
-                    ->where('availability', $data['availability'])
-                    ->where('tour_month_id', $data['tour_month_id'])
-                    ->exists();
-
+                ->where('end_date', $data['end_date'])
+                ->where('availability', $data['availability'])
+                ->where('tour_month_id', $data['tour_month_id'])
+                ->exists();
+                
                 if (!$exists) {
                     $created[] = DatestourModel::create([
                         'start_date' => $data['start_date'],
@@ -96,7 +47,7 @@ class DateOfTourController extends Controller
                     ]);
                 }
             }
-
+            
             return response()->json([
                 'status' => true,
                 'message' => 'Unique date tours inserted successfully',
@@ -109,4 +60,58 @@ class DateOfTourController extends Controller
             ], 500);
         }
     }
+    
+    
+public function updateDateTours(Request $request)
+{
+    try {
+        $data = $request->all();
+
+        if (!is_array($data)) {
+            return response()->json([
+                'error' => 'Expected an array of date tour objects.'
+            ], 400);
+        }
+
+        $updated = [];
+
+        foreach ($data as $index => $item) {
+            $validator = Validator::make($item, [
+                'date_id' => 'required|integer|exists:datestour,date_id',
+                'start_date' => 'required|date',
+                'end_date' => 'required|date|after_or_equal:start_date',
+                'availability' => 'required|string',
+                'tour_month_id' => 'required|integer|exists:monthtour,tour_month_id',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'error' => "Validation failed at index $index",
+                    'messages' => $validator->errors()
+                ], 422);
+            }
+
+            $dateTour = DatestourModel::find($item['date_id']);
+            $dateTour->update([
+                'start_date' => $item['start_date'],
+                'end_date' => $item['end_date'],
+                'availability' => $item['availability'],
+                'tour_month_id' => $item['tour_month_id'],
+            ]);
+
+            $updated[] = $dateTour;
+        }
+
+        return response()->json([
+            'message' => 'Date tours updated successfully.',
+            'data' => $updated
+        ]);
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Something went wrong',
+            'details' => $e->getMessage()
+        ], 500);
+    }
+}
+
 }
