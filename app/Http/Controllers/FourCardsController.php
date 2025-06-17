@@ -48,21 +48,24 @@ class FourCardsController extends Controller
     }
     }
 
-public function upadate(Request $request,$id){
 
-    try{
-    $card=FourCards::findOrfail($id);
+public function upadate(Request $request, $id)
+{
+    try {
+        $card = FourCards::findOrFail($id);
 
-    $validated= $request -> validate([
-        'heading'=> 'require|string',
-        'headingData'=> 'require|string',
-    ]);
+        $validated = $request->validate([
+            'heading' => 'required|string',
+            'headingData' => 'required|string',
+        ]);
 
-    $card=FourCards::updated($validated);
-    return response()-> json($card,201);
- } catch(Exception $d){
-    dd($d);
- }
+        $card->update($validated);
+
+        return response()->json($card, 200);
+
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 }
 
 

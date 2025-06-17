@@ -112,7 +112,7 @@ Route::middleware('auth')->group(function () {
 
 Route::get('/four-cards', [FourCardsController::class, 'get']);         // Get all
 Route::post('/four-cards', [FourCardsController::class, 'set']);        // Set/Create
-Route::put('/four-cards/{id}', [FourCardsController::class, 'upadate']);   // Update
+Route::post('/four-cards/{id}', [FourCardsController::class, 'upadate']);   // Update
 
 // make your own trip
 Route::post('/trips', [MakeTripController::class, 'set']);
