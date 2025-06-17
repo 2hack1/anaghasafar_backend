@@ -48,45 +48,99 @@ class PacImageController extends Controller
     }
 
 
+//     public function updatePackageImage(Request $request, $packageImgId)
+//     {
+//         try {
+//             // Find the existing image entry
+//            $packimg = Packimg::where('package_id', $packageImgId)->first();
+
+// if (!$packimg) {
+//     return response()->json([
+//         'error' => 'No image found for this package_id',
+//         'id' => $packageImgId
+//     ], 404);
+// }
+
+    //         if ($request->hasFile('image')) {
+    //             $file = $request->file('image');
+    //             $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+    //             $pathimage = $request->input('pac_img_path'); // e.g., 'package/images'
+    //             $path = $file->storeAs($pathimage, $filename, 'public');
+
+    //             // Optionally delete the old image file
+    //             if ($packimg->img && Storage::disk('public')->exists($packimg->img)) {
+    //                 Storage::disk('public')->delete($packimg->img);
+    //             }
+
+    //             // Update the image path
+    //             $packimg->update([
+    //                 'img' => $path,
+    //             ]);
+
+    //             return response()->json([
+    //                 'message' => 'Image updated successfully',
+    //                 'path' => $path,
+    //                 'url' => 'storage/' . $path
+    //             ]);
+    //         }
+
+    //         return response()->json(['error' => 'No image uploaded'], 400);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => 'Something went wrong', 'details' => $e->getMessage()], 500);
+    //     }
+    // }
+
+
     public function updatePackageImage(Request $request, $packageImgId)
-    {
-        try {
-            // Find the existing image entry
-           $packimg = Packimg::where('package_id', $packageImgId)->first();
+{
+    try {
+        // Check for file
+        if (!$request->hasFile('image')) {
+            return response()->json(['error' => 'No image uploaded'], 400);
+        }
 
-if (!$packimg) {
-    return response()->json([
-        'error' => 'No image found for this package_id',
-        'id' => $packageImgId
-    ], 404);
-}
+        $file = $request->file('image');
+        $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
+        $pathimage = $request->input('pac_img_path'); // e.g., 'package/images'
+        $path = $file->storeAs($pathimage, $filename, 'public');
 
-            if ($request->hasFile('image')) {
-                $file = $request->file('image');
-                $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
-                $pathimage = $request->input('pac_img_path'); // e.g., 'package/images'
-                $path = $file->storeAs($pathimage, $filename, 'public');
+        // Try to find existing image record
+        $packimg = Packimg::where('package_id', $packageImgId)->first();
 
-                // Optionally delete the old image file
-                if ($packimg->img && Storage::disk('public')->exists($packimg->img)) {
-                    Storage::disk('public')->delete($packimg->img);
-                }
-
-                // Update the image path
-                $packimg->update([
-                    'img' => $path,
-                ]);
-
-                return response()->json([
-                    'message' => 'Image updated successfully',
-                    'path' => $path,
-                    'url' => 'storage/' . $path
-                ]);
+        if ($packimg) {
+            // Delete old image file if exists
+            if ($packimg->img && Storage::disk('public')->exists($packimg->img)) {
+                Storage::disk('public')->delete($packimg->img);
             }
 
-            return response()->json(['error' => 'No image uploaded'], 400);
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Something went wrong', 'details' => $e->getMessage()], 500);
+            // Update existing record
+            $packimg->update([
+                'img' => $path,
+            ]);
+        } else {
+            // Create new image entry
+            $packimg = Packimg::create([
+                'package_id' => $packageImgId,
+                'img' => $path,
+            ]);
         }
+
+        return response()->json([
+            'message' => 'Image saved successfully',
+            'path' => $path,
+            'url' => 'storage/' . $path
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Something went wrong',
+            'details' => $e->getMessage()
+        ], 500);
     }
 }
+
+
+
+
+}
+

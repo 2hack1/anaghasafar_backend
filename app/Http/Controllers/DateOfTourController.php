@@ -17,7 +17,7 @@ class DateOfTourController extends Controller
         return response()->json($dates);
     }
 
-    
+
 
     public function setDateTour(Request $request)
     {

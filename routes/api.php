@@ -66,6 +66,8 @@ Route::prefix('dateOfTour')->group(function () {
 });
     Route::post('dateOfTour/a', [DateOfTourController::class, 'setDateTour']); // Create date
     Route::post('dateOfTour/multipleupdate', [DateOfTourController::class, 'updateDateTours']); // Create date
+  
+
 
 Route::prefix('pac_image')->group(function () {
     Route::get('/{packageId}', [PacImageController::class, 'getPackageImages']);
