@@ -78,6 +78,7 @@ Route::prefix('pac_image')->group(function () {
 
 Route::post('/topimg', [TopBarImageController::class, 'top']);
 Route::get('/topimagess', [TopBarImageController::class, 'getImages']);
+Route::post('/topimg/update/{id}', [TopBarImageController::class, 'updateTop']);
 
 
 
