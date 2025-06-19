@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin;
 use App\Http\Controllers\DateOfTourController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DestinationController;
@@ -102,13 +103,12 @@ Route::post('/users', [UserController::class, 'store']);
 Route::put('/users/{id}', [UserController::class, 'update']);
 Route::delete('/users/{id}', [UserController::class, 'destroy']);
 
-
 Route::post('/register-user', [UserController::class, 'register']);
 Route::post('/login',    [UserController::class, 'login']);
 
 Route::middleware('auth')->group(function () {
-    Route::post('/logout', [UserController::class, 'logout']);
-    Route::get('/user',    [UserController::class, 'user']);
+Route::post('/logout', [UserController::class, 'logout']);
+Route::get('/user',    [UserController::class, 'user']);
 });
 
 Route::get('/four-cards', [FourCardsController::class, 'get']);         // Get all
@@ -119,3 +119,14 @@ Route::post('/four-cards/{id}', [FourCardsController::class, 'upadate']);   // U
 Route::post('/trips', [MakeTripController::class, 'set']);
 Route::get('/trips', [MakeTripController::class, 'get']);
 Route::delete('/trips/{id}', [MakeTripController::class, 'deleted']);
+
+
+Route::prefix('admin')->name('admin.')->group(function () {
+    Route::get('/login', [Admin::class, 'showLoginForm'])->name('login');
+    Route::post('/login', [Admin::class, 'login'])->name('login.submit');
+    Route::post('logout', [Admin::class, 'logout'])->name('logout');
+
+    Route::get('dashboard', function () {
+        return view('admin.dashboard');
+    })->middleware('auth:admin')->name('dashboard');
+});

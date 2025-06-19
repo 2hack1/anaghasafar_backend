@@ -59,19 +59,53 @@ class UserController extends Controller
     }
 
 
+    // public function register(Request $request)
+    // {
+    //     try {
+    //         $request->validate([
+    //             'name'     => 'required|string|max:500',
+    //             'email'    => 'required|string|email|unique:users,email',
+    //             'password' => 'required|string|min:6|confirmed',
+    //             'role'     =>  'string'
+    //         ]);
+
+    //         $user = User::create([
+    //             'name'     => $request->name,
+    //             'email'    => $request->email,
+    //             'password' => Hash::make($request->password),
+    //             'role'      =>$request->role
+    //         ]);
+
+    //         $token = $user->createToken('auth_token')->plainTextToken;
+
+    //         return response()->json([
+    //             'message'      => 'User registered successfully',
+    //             'access_token' => $token,
+    //             'token_type'   => 'Bearer',
+    //             'user'         => $user
+    //         ]);
+    //     } catch (Exception $tr) {
+    //         dd($tr);
+    //     }
+    // }
+
     public function register(Request $request)
     {
         try {
-            $request->validate([
-                'name'     => 'required|string|max:500',
+
+            // dd($request ->all());
+            $validated = $request->validate([
+                'name'     => 'required|string|max:255',
                 'email'    => 'required|string|email|unique:users,email',
                 'password' => 'required|string|min:6|confirmed',
+                'role'     => 'nullable|in:user,admin,editor', // validate against allowed roles
             ]);
 
             $user = User::create([
-                'name'     => $request->name,
-                'email'    => $request->email,
-                'password' => Hash::make($request->password),
+                'name'     => $validated['name'],
+                'email'    => $validated['email'],
+                'password' => Hash::make($validated['password']),
+                'role'     => $validated['role'] ?? 'user', // default role if not passed
             ]);
 
             $token = $user->createToken('auth_token')->plainTextToken;
@@ -81,26 +115,62 @@ class UserController extends Controller
                 'access_token' => $token,
                 'token_type'   => 'Bearer',
                 'user'         => $user
-            ]);
-        } catch (Exception $tr) {
-            dd($tr);
+            ], 201);
+        } catch (ValidationException $e) {
+            return response()->json(['errors' => $e->errors()], 422);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
     // 🔐 User Login
+    // public function login(Request $request)
+    // {
+    //     try {
+    //         $request->validate([
+    //             'email'    => 'required|email',
+    //             'password' => 'required',
+    //              'role'     => 'required',
+    //         ]);
+
+    //         $user = User::where('email', $request->email)->first();
+
+    //         if (!$user || !Hash::check($request->password, $user->password)) {
+    //             throw ValidationException::withMessages([
+    //                 'email' => ['The provided credentials are incorrect.']
+    //             ]);
+    //         }
+
+    //         $token = $user->createToken('auth_token')->plainTextToken;
+
+    //         return response()->json([
+    //             'message'      => 'Login successful',
+    //             'access_token' => $token,
+    //             'token_type'   => 'Bearer',
+    //             'user'         => $user
+    //         ]);
+    //     } catch (Exception $e) {
+    //         dd($e);
+    //     }
+    // }
     public function login(Request $request)
-    {
-        try{
+{
+    try {
         $request->validate([
             'email'    => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
+            'role'     => 'required|in:user,admin,editor',
         ]);
 
         $user = User::where('email', $request->email)->first();
 
-        if (!$user || !Hash::check($request->password, $user->password)) {
+        if (
+            !$user ||
+            !Hash::check($request->password, $user->password) ||
+            $user->role !== $request->role
+        ) {
             throw ValidationException::withMessages([
-                'email' => ['The provided credentials are incorrect.']
+                'email' => ['The provided credentials are incorrect or role does not match.']
             ]);
         }
 
@@ -112,11 +182,11 @@ class UserController extends Controller
             'token_type'   => 'Bearer',
             'user'         => $user
         ]);
-    }catch(Exception $e){
-      dd($e);
-  
+    } catch (Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
     }
-    }
+}
+
 
     // 🔓 User Logout
     public function logout(Request $request)
