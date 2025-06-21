@@ -57,7 +57,10 @@ class PackageModel extends Model
     {
         return $this->hasMany(MonthTourModel::class, 'package_id', 'package_id');
     }
-
+public function gellery()
+    {
+        return $this->hasMany(gelleryModel::class, 'package_id', 'package_id');
+    }
     /**
      * Relationship: Package has many Transport options
      */

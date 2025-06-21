@@ -5,6 +5,7 @@ use App\Http\Controllers\DateOfTourController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DestinationController;
 use App\Http\Controllers\FourCardsController;
+use App\Http\Controllers\gelleryController;
 use App\Http\Controllers\ItinariesController;
 use App\Http\Controllers\MakeTripController;
 use App\Http\Controllers\MonthController;
@@ -14,8 +15,7 @@ use App\Http\Controllers\Sub_DestinationController;
 use App\Http\Controllers\TopBarImageController;
 use App\Http\Controllers\TransportsController;
 use App\Http\Controllers\UserController;
-
-
+use App\Models\gelleryModel;
 
 Route::prefix('destination')->group(function () {
     Route::post('/', [DestinationController::class, 'setDestination']);
@@ -121,12 +121,8 @@ Route::get('/trips', [MakeTripController::class, 'get']);
 Route::delete('/trips/{id}', [MakeTripController::class, 'deleted']);
 
 
-Route::prefix('admin')->name('admin.')->group(function () {
-    Route::get('/login', [Admin::class, 'showLoginForm'])->name('login');
-    Route::post('/login', [Admin::class, 'login'])->name('login.submit');
-    Route::post('logout', [Admin::class, 'logout'])->name('logout');
-
-    Route::get('dashboard', function () {
-        return view('admin.dashboard');
-    })->middleware('auth:admin')->name('dashboard');
+Route::controller(gelleryController::class)->group(function () {
+    Route::get('/gellery', 'index');               // optional ?package_id=1
+    Route::post('/gellery', 'store');              // multiple upload
+    Route::put('/gellery/{packageId}', 'update');  // add more to same package
 });
