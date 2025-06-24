@@ -58,6 +58,9 @@
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
+        ],
+        "host": [
+            "php artisan serve --host=0.0.0.0 --port=8000"
         ]
     },
     "extra": {
