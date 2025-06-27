@@ -8,7 +8,7 @@ class gelleryModel extends Model
 {
     //  use HasFactory;
 
-    protected $table = 'package_gallery'; // Match your table name
+    protected $table = 'package_gellery'; // Match your table name
 
     protected $fillable = [
         'images',

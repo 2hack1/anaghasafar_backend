@@ -122,7 +122,7 @@ Route::delete('/trips/{id}', [MakeTripController::class, 'deleted']);
 
 
 Route::controller(gelleryController::class)->group(function () {
-    Route::get('/gellery', 'index');               // optional ?package_id=1
-    Route::post('/gellery', 'store');              // multiple upload
+    Route::get('/gellery/{id}','index');               // optional ?package_id=1
+    Route::post('/gellery','store');              // multiple upload
     Route::put('/gellery/{packageId}', 'update');  // add more to same package
 });
