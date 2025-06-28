@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use App\Models\gelleryModel;
 use Exception;
+// use Illuminate\Container\Attributes\Storage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage;
 
 class gelleryController extends Controller
 {
@@ -33,81 +35,141 @@ class gelleryController extends Controller
      * POST: Set / Store multiple images
      */
 
-    public function store(Request $request)
-    {
-        try {
-
-            $request->validate([
-                'img_path' => 'required|string',
-                'package_id' => 'required|numeric',
-                'image' => 'required|array',
-                'image.*'     => 'image|mimes:jpeg,png,jpg,gif,webp|max:5024', // max 5MB per file
-            ]);
-
-            $files = $request->file('image');
-            $package_id = $request->input('package_id');
-            $images = [];
-
-            foreach ($files as $file) {
-                $id = (string) uniqid() . '_' . time();
-                $filename = (string)Str::uuid() . '_' . $file->getClientOriginalName();
-                $path = 'storage' . DIRECTORY_SEPARATOR . $file->storeAs('gallery', $filename, 'public');
-                
-                array_push($images, [
-                    'id' => $id,
-                    'url' => $path
-                ]);
-            }
-
-            $gallery = gelleryModel::create([
-                'images' => $images,
-                'package_id' => $package_id
-            ]);
-
-            return response()->json([
-                'message' => 'Images uploaded successfully',
-                'gallery' => $gallery
-            ]);
-        } catch (Exception $e) {
-            return response()->json([
-                'message' => 'Upload failed',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-    /**
-     * PUT: Append more images to the same package
-     */
-    public function update(Request $request, $packageId)
-    {
+     public function store(Request $request, $package_id)
+{
+    try {
         $request->validate([
             'image' => 'required|array',
-            'image.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
-            'img_path' => 'required|string',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120', // 5MB per image
         ]);
 
-        $storedImages = [];
+        $files = $request->file('image');
+        $images = [];
 
-        foreach ($request->file('image') as $file) {
-            $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
-            $path = $file->storeAs($request->pac_img_path, $filename, 'public');
+        foreach ($files as $file) {
+            $id = uniqid() . '_' . time();
+            $filename = Str::uuid() . '_' . $file->getClientOriginalName();
 
-            $img = gelleryModel::create([
-                'gellery' => $path,
-                'package_id' => $packageId,
-            ]);
+            // Store in 'public/gallery', accessible via 'storage/gallery/...'
+            $file->storeAs('gallery', $filename, 'public');
 
-            $storedImages[] = [
-                'id' => $img->id,
-                'path' => $path,
-                'url' => 'storage/' . $path
+            $images[] = [
+                'id' => $id,
+                'url' => 'storage/gallery/' . $filename,
             ];
         }
 
-        return response()->json([
-            'message' => 'Images added to package successfully',
-            'data' => $storedImages
+        $gallery = gelleryModel::create([
+            'images' => $images,
+            'package_id' => $package_id,
         ]);
+
+        return response()->json([
+            'message' => 'Images uploaded successfully',
+            'gallery' => $gallery
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'message' => 'Upload failed',
+            'error' => $e->getMessage(),
+        ], 500);
     }
+}
+    
+public function replaceGalleryImages(Request $request, $package_id)
+{
+    try {
+        // 1. Validate new image uploads
+        $request->validate([
+            'image' => 'required|array',
+            'image.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
+        ]);
+
+        $newFiles = $request->file('image');
+        $newImages = [];
+
+        // 2. Get existing gallery
+        $gallery = gelleryModel::where('package_id', $package_id)->first();
+
+        if (!$gallery) {
+            return response()->json(['message' => 'Gallery not found'], 404);
+        }
+
+        // 3. Delete old images from disk
+        foreach ($gallery->images as $oldImg) {
+            $relativePath = str_replace('storage/', '', $oldImg['url']);
+            if (Storage::disk('public')->exists($relativePath)) {
+                Storage::disk('public')->delete($relativePath);
+            }
+        }
+
+        // 4. Upload and store new images
+        foreach ($newFiles as $file) {
+            $id = uniqid() . '_' . time();
+            $filename = Str::uuid() . '_' . $file->getClientOriginalName();
+
+            $file->storeAs('gallery', $filename, 'public');
+
+            $newImages[] = [
+                'id' => $id,
+                'url' => 'storage/gallery/' . $filename,
+            ];
+        }
+
+        // 5. Update gallery
+        $gallery->images = $newImages;
+        $gallery->save();
+
+        return response()->json([
+            'message' => 'Gallery images replaced successfully',
+            'gallery' => $gallery
+        ]);
+    } catch (Exception $e) {
+        return response()->json([
+            'message' => 'Image replacement failed',
+            'error' => $e->getMessage()
+        ], 500);
+    }
+}
+
+    public function deleteImageByPackageId($package_id, $image_id)
+{
+    // 1. Find the gallery by package_id
+    $gallery = gelleryModel::where('package_id', $package_id)->first();
+
+    if (!$gallery) {
+        return response()->json(['message' => 'Gallery not found'], 404);
+    }
+
+    // 2. Get existing images
+    $images = $gallery->images ?? [];
+
+    // 3. Find the image to delete
+    $imageToDelete = collect($images)->firstWhere('id', $image_id);
+
+    if (!$imageToDelete) {
+        return response()->json(['message' => 'Image not found'], 404);
+    }
+
+    // 4. Delete the file from storage (optional, but recommended)
+    $relativePath = str_replace('storage/', '', $imageToDelete['url']);
+    if (Storage::disk('public')->exists($relativePath)) {
+        Storage::disk('public')->delete($relativePath);
+    }
+
+    // 5. Remove the image from the array
+    $updatedImages = array_values(array_filter($images, function ($img) use ($image_id) {
+        return $img['id'] !== $image_id;
+    }));
+
+    // 6. Update the DB
+    $gallery->images = $updatedImages;
+    $gallery->save();
+
+    return response()->json(['message' => 'Image deleted successfully']);
+}
+    /**
+     * Delete: Delete paticular images to the same package
+     */
+  
 }
