@@ -9,23 +9,23 @@ use Illuminate\Support\Str;
 
 class gelleryController extends Controller
 {
- 
-public function index($package_id)
-{
-    try {
-        $images = gelleryModel::where('package_id', $package_id)->get();
 
-        return response()->json([
-            'message' => 'Images fetched successfully',
-            'data' => $images
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'message' => 'Failed to fetch images',
-            'error' => $e->getMessage()
-        ], 500);
+    public function index($package_id)
+    {
+        try {
+            $images = gelleryModel::where('package_id', $package_id)->get();
+
+            return response()->json([
+                'message' => 'Images fetched successfully',
+                'data' => $images
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'message' => 'Failed to fetch images',
+                'error' => $e->getMessage()
+            ], 500);
+        }
     }
-}
 
 
 
@@ -44,36 +44,29 @@ public function index($package_id)
                 'image.*'     => 'image|mimes:jpeg,png,jpg,gif,webp|max:5024', // max 5MB per file
             ]);
 
-           
             $files = $request->file('image');
-            if (!$files) {
-                throw new Exception("No images uploaded.");
-            }
-            if (!is_array($files)) {
-                $files = [$files]; // convert single file to array
-            }
-            $paths = [];
+            $package_id = $request->input('package_id');
+            $images = [];
 
             foreach ($files as $file) {
-                $filename = Str::uuid()->toString() . '.' . $file->getClientOriginalExtension();
-                $path = $file->storeAs($request->img_path, $filename, 'public');
-                $paths[] = $path;
+                $id = (string) uniqid() . '_' . time();
+                $filename = (string)Str::uuid() . '_' . $file->getClientOriginalName();
+                $path = 'storage' . DIRECTORY_SEPARATOR . $file->storeAs('gallery', $filename, 'public');
+                
+                array_push($images, [
+                    'id' => $id,
+                    'url' => $path
+                ]);
             }
 
             $gallery = gelleryModel::create([
-                'images' => $paths,
-                'package_id' => $request->package_id,
+                'images' => $images,
+                'package_id' => $package_id
             ]);
-
-            $urls = array_map(fn($p) => asset('storage/' . $p), $paths);
 
             return response()->json([
                 'message' => 'Images uploaded successfully',
-                'data' => [
-                    'id' => $gallery->id,
-                    'paths' => $paths,
-                    'urls' => $urls,
-                ]
+                'gallery' => $gallery
             ]);
         } catch (Exception $e) {
             return response()->json([
@@ -86,8 +79,6 @@ public function index($package_id)
     /**
      * PUT: Append more images to the same package
      */
-
-     
     public function update(Request $request, $packageId)
     {
         $request->validate([

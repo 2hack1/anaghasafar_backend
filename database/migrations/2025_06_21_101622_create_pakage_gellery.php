@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('package_gellery', function (Blueprint $table) {
             $table->id();
-            $table-> json('images');
+            $table->json('images')->comment('Array of image objects: [{"id": "...", "url": "..."}]');
             $table->unsignedBigInteger('package_id')->nullable();
             $table->timestamps();
         });
