@@ -91,7 +91,7 @@ Route::prefix('packages')->group(function () {
     Route::post('/{sub_des_id}', [PackagesController::class, 'setPackage']);
     Route::delete('/delete/{package_id}', [PackagesController::class, 'deleteByPackageId']);
     Route::post('/update/{package_id}', [PackagesController::class, 'updatePackage']);
-
+   Route::post('/limit/{subdesid}',[PackagesController::class,'getPackageHomeLimit']);
 
 });
 // packages finding

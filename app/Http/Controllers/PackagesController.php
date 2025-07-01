@@ -21,6 +21,20 @@ class PackagesController extends Controller
         return response()->json($packages);
     }
 
+  public function  getPackageHomeLimit($sub_des_id)
+{
+      $packages = PackageModel::with('images')
+            ->where('sub_destination_id', $sub_des_id)
+            ->limit(5) 
+            ->get();
+
+        return response()->json($packages);
+}
+
+  
+  
+
+
     public function getPackageDetails($packageId)
     {
         $packages = PackageModel::with('images')
@@ -109,7 +123,6 @@ public function deleteByPackageId($package_id)
 
 
 public function updatePackage(Request $request, $package_id){
-
 try{
     {
         $validated = $request->validate([
