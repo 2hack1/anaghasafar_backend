@@ -4,11 +4,13 @@ use App\Http\Controllers\Admin;
 use App\Http\Controllers\DateOfTourController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DestinationController;
+use App\Http\Controllers\EmailController;
 use App\Http\Controllers\FourCardsController;
 use App\Http\Controllers\gelleryController;
 use App\Http\Controllers\ItinariesController;
 use App\Http\Controllers\MakeTripController;
 use App\Http\Controllers\MonthController;
+use App\Http\Controllers\orderController;
 use App\Http\Controllers\PacImageController;
 use App\Http\Controllers\PackagesController;
 use App\Http\Controllers\Sub_DestinationController;
@@ -142,3 +144,6 @@ require base_path("/routes/api/gallery.php");
 //     Route::post('/gellery/{package_id}/replace', 'replaceGalleryImages');
 //     // add more to same package
 // });
+
+Route::post('/send-mail', [EmailController::class, 'sendMail']);
+Route:: post('/order', [orderController:: class, 'set']);
