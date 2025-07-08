@@ -15,10 +15,11 @@ class OrderModel extends Model
         'destinationId',
         'subdesId',
         'packagesId',
-        'monthId',
-        'dateId',
-        'itineryId',
-        'transportId',
+        'monthId', 
+        'dateId', 
+        'adult',
+        'children',
+        'infant',
     ];
 
   

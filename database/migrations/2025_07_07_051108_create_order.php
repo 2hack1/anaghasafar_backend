@@ -19,8 +19,9 @@ return new class extends Migration
             $table->integer('packagesId');
             $table->integer('monthId');
             $table->integer('dateId');
-            $table->integer('itineryId');
-            $table->integer('transportId');
+            $table->integer('adult');
+            $table->integer('children');
+            $table->integer('infant');
             $table->timestamps();
         });
     }
