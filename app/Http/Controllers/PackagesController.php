@@ -31,9 +31,6 @@ class PackagesController extends Controller
         return response()->json($packages);
 }
 
-  
-  
-
 
     public function getPackageDetails($packageId)
     {

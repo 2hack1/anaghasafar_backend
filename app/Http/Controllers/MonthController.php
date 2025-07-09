@@ -14,9 +14,6 @@ use PhpParser\Node\Stmt\TryCatch;
 // class MonthController extends Controller
 
 
-
-
-
 class MonthController extends Controller
 {
     public function getMonthTours($packageId)
