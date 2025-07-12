@@ -8,10 +8,6 @@ use Exception;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Http\Request;
 use PhpParser\Node\Stmt\TryCatch;
-// use App\Models\MonthTourModel;
-// use Illuminate\Http\Request;
-
-// class MonthController extends Controller
 
 
 class MonthController extends Controller
@@ -45,8 +41,6 @@ class MonthController extends Controller
             dd($c);
         }
     }
-
-
 
 public function updateMultipleMonthTour(Request $request)
 {

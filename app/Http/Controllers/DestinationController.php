@@ -94,9 +94,8 @@ class DestinationController extends Controller
         if (!$destination) {
             return response()->json(['message' => 'Destination not found'], 404);
         }
-
         $destination->delete();
-
+        
         return response()->json(['message' => 'Destination deleted successfully'], 200);
     }
 

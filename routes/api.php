@@ -148,3 +148,4 @@ require base_path("/routes/api/gallery.php");
 Route::post('/send-mail', [EmailController::class, 'sendMail']);
 Route:: post('/order', [orderController:: class, 'set']);
 Route :: get('/order', [orderController :: class , 'get']);
+Route :: get('/orderbyid/{id}', [orderController :: class , 'getByuserId']);
