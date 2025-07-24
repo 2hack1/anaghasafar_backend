@@ -17,8 +17,6 @@ class EmailController extends Controller
         $to_email = $request->input('email');
         $to_name = $request->input('name');
 
-    //    dd($request->all());
-        
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
@@ -48,7 +46,7 @@ class EmailController extends Controller
             <strong>Anagha Safar Team</strong></p>';
 
             $mail->AltBody = "Dear Traveler,\n\nThank you for submitting your trip request with Anagha Safar.\nWe have received your application and our team will contact you shortly with a personalized plan.\n\nWarm regards,\nAnagha Safar Team";
-               $mail->send();
+            $mail->send();
 
             return response()->json([
                 'status' => 'success',
@@ -67,8 +65,8 @@ class EmailController extends Controller
         $to_email = $request->input('email');
         $to_name = $request->input('name');
 
-    //    dd($request->all());
-        
+        //    dd($request->all());
+
         $mail = new PHPMailer(true);
         try {
             $mail->isSMTP();
@@ -80,13 +78,12 @@ class EmailController extends Controller
             // $mail->Password   = 'zlhh zefq ckdh ubmv'; // 🔐 App password
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = 587;
-
             $mail->setFrom('kapilagrawal230@gmail.com', 'AnaghaSafar');
             $mail->addAddress($to_email, $to_name);
 
 
             $mail->isHTML(true);
-            $mail->Subject = 'Thank You for Applying - Make Your Own Trip';
+            $mail->Subject = 'confirm - Your Trip';
 
             $mail->Body = '
             <p>Dear Traveler,</p>
@@ -97,7 +94,7 @@ class EmailController extends Controller
             <strong>Anagha Safar Team</strong></p>';
 
             $mail->AltBody = "Dear Traveler,\n\nThank you for submitting your trip request with Anagha Safar.\nWe have received your application and our team will contact you shortly with a personalized plan.\n\nWarm regards,\nAnagha Safar Team";
-               $mail->send();
+            $mail->send();
 
             return response()->json([
                 'status' => 'success',
@@ -106,15 +103,8 @@ class EmailController extends Controller
         } catch (Exception $er) {
             dd($er);
         }
-
-
-
-
-
-
-
-
-        // include base_path("email-project/index.php");
-        // return response()->json(['status'=>'Email Triggered']);
     }
+
+
+    
 }
