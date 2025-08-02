@@ -10,7 +10,7 @@ class hotelModel extends Authenticatable
     use HasApiTokens, HasFactory;
 
     protected $table = 'hotel_vendors';
-
+ protected $primaryKey = 'hotel_vendor_id';
     protected $fillable = [
         'users_id',
         'vendor_name',

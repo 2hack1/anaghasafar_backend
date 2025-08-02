@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\HotelRoomsController;
 use App\Http\Controllers\HotelVender;
 use App\Http\Controllers\orderController;
 
@@ -43,3 +44,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('vendor/{id}', [HotelVender::class, 'destroy']);
 });
 
+
+
+
+Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);
