@@ -119,7 +119,7 @@ public function login(Request $request)
     }
 
     // If you're using Sanctum, uncomment this:
-    $token = $user->createToken('auth_token')->plainTextToken;
+     $token = '214|anagha_gGINbySKqDNKbcjulL6a5tg8ZDdIRlK6yC80BfrF229f0c74';
 
     return response()->json([
         'message'      => 'Login successful',

@@ -33,6 +33,8 @@ class HotelRoomsModel extends Model
         'checkOutTime',
         'amenities',
         'rooms_image',
+        'hotel_vendor_id',
+
     ];
 
     protected $casts = [
@@ -44,8 +46,8 @@ class HotelRoomsModel extends Model
         'checkInTime' => 'datetime:H:i',
         'checkOutTime' => 'datetime:H:i',
     ];
-     public function hotel()
-    {
-        return $this->belongsTo(hotelModel::class, 'hotel_vendor_id');
-    }
+    //  public function hotel()
+    // {
+    //     return $this->belongsTo(hotelModel::class, 'hotel_vendor_id');
+    // }
 }

@@ -47,4 +47,10 @@ Route::middleware('auth:api')->group(function () {
 
 
 
-Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);
+
+
+Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);     
+Route::get('/hotel-rooms/{id}', [HotelRoomsController::class, 'show']);   
+Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  
+Route::put('/hotel-rooms/{id}', [HotelRoomsController::class, 'update']);   
+Route::delete('/hotel-rooms/{id}', [HotelRoomsController::class, 'destroy']);  
