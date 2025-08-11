@@ -54,3 +54,5 @@ Route::get('/hotel-rooms/{id}', [HotelRoomsController::class, 'show']);
 Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  
 Route::post('/hotel-rooms/{id}', [HotelRoomsController::class, 'update']);   
 Route::delete('/hotel-rooms/{id}', [HotelRoomsController::class, 'destroy']);  
+Route::get('/hotel-available-rooms', [HotelRoomsController::class, 'search']);     
+

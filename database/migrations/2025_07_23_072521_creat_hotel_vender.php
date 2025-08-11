@@ -11,7 +11,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('hotel_vendors', function (Blueprint $table) {
-            $table->id("hotel_vender_id");
+            $table->id("hotel_vendor_id");
             $table->string("users_id");
             $table->string("vendor_name");
             $table->string("vendor_email")->unique();

@@ -9,6 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+
 class HotelVender extends Controller
 {
     // ✅ REGISTER VENDOR + USER
@@ -16,42 +17,42 @@ class HotelVender extends Controller
     {
 
         try {
-    $validator = Validator::make($request->all(), [
-        'vendor_name'     => 'required',
-        'vendor_email'    => 'required|email|unique:hotel_vendors',
-        'vendor_password' => 'required|min:6|confirmed',
-        'Mobilenumber'    => 'required',
-        'hotelname'       => 'required',
-        'hoteltype'       => 'required',
-        'totalrooms'      => 'required',
-        'city'            => 'required',
-        'state'           => 'required',
-        'pincode'         => 'required',
-        'address'         => 'required',
-        'baseprice'       => 'required',
-        'gstnumber'       => 'nullable|string|max:15',
-       
-        'licensefile'     => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
+            $validator = Validator::make($request->all(), [
+                'vendor_name'     => 'required',
+                'vendor_email'    => 'required|email|unique:hotel_vendors',
+                'vendor_password' => 'required|min:6|confirmed',
+                'Mobilenumber'    => 'required',
+                'hotelname'       => 'required',
+                'hoteltype'       => 'required',
+                'totalrooms'      => 'required',
+                'city'            => 'required',
+                'state'           => 'required',
+                'pincode'         => 'required',
+                'address'         => 'required',
+                'baseprice'       => 'required',
+                'gstnumber'       => 'nullable|string|max:15',
 
-        'hotel_images'    => 'required|array',
-        'hotel_images.*'  => 'image|mimes:jpeg,png,jpg,webp|max:5120',
-    ]);
+                'licensefile'     => 'required|image|mimes:jpeg,png,jpg,webp|max:5120',
 
-    if ($validator->fails()) {
-        return response()->json($validator->errors(), 422);
-    }
+                'hotel_images'    => 'required|array',
+                'hotel_images.*'  => 'image|mimes:jpeg,png,jpg,webp|max:5120',
+            ]);
 
-    // ✅ Process License File (Single Image)
-    $licensePath = null;
-    if ($request->hasFile('licensefile')) {
-        $licenseFile = $request->file('licensefile');
-        $licenseName = Str::uuid() . '_' . $licenseFile->getClientOriginalName();
-        $licenseFile->storeAs('licenses', $licenseName, 'public');
-        $licensePath = 'licenses/' . $licenseName;
-    }
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 422);
+            }
 
-    // ✅ Process Hotel Images (Multiple Images)
-      $files = $request->file('hotel_images');
+            // ✅ Process License File (Single Image)
+            $licensePath = null;
+            if ($request->hasFile('licensefile')) {
+                $licenseFile = $request->file('licensefile');
+                $licenseName = Str::uuid() . '_' . $licenseFile->getClientOriginalName();
+                $licenseFile->storeAs('licenses', $licenseName, 'public');
+                $licensePath = 'licenses/' . $licenseName;
+            }
+
+            // ✅ Process Hotel Images (Multiple Images)
+            $files = $request->file('hotel_images');
             $images = [];
 
             foreach ($files as $file) {
@@ -66,67 +67,65 @@ class HotelVender extends Controller
                 ];
             }
 
-  
 
-    // ✅ Save to DB
-    $vendor = hotelModel::create([
-        'users_id'        => 1,
-        'vendor_name'     => $request->vendor_name,
-        'vendor_email'    => $request->vendor_email,
-        'Mobilenumber'    => $request->Mobilenumber,
-        'vendor_password' => Hash::make($request->vendor_password),
-        'hotelname'       => $request->hotelname,
-        'hoteltype'       => $request->hoteltype,
-        'totalrooms'      => $request->totalrooms,
-        'city'            => $request->city,
-        'state'           => $request->state,
-        'pincode'         => $request->pincode,
-        'address'         => $request->address,
-        'baseprice'       => $request->baseprice,
-        'gstnumber'       => $request->gstnumber,
-        'licensefile'     => $licensePath,
-        'hotel_images'    => $images,
-        'gstnumber'      => $request->gstnumber,
-    ]);
 
-    $token = $vendor->createToken('auth_token')->plainTextToken;
+            // ✅ Save to DB
+            $vendor = hotelModel::create([
+                'users_id'        => 1,
+                'vendor_name'     => $request->vendor_name,
+                'vendor_email'    => $request->vendor_email,
+                'Mobilenumber'    => $request->Mobilenumber,
+                'vendor_password' => Hash::make($request->vendor_password),
+                'hotelname'       => $request->hotelname,
+                'hoteltype'       => $request->hoteltype,
+                'totalrooms'      => $request->totalrooms,
+                'city'            => $request->city,
+                'state'           => $request->state,
+                'pincode'         => $request->pincode,
+                'address'         => $request->address,
+                'baseprice'       => $request->baseprice,
+                'gstnumber'       => $request->gstnumber,
+                'licensefile'     => $licensePath,
+                'hotel_images'    => $images,
+                'gstnumber'      => $request->gstnumber,
+            ]);
 
-    return response()->json([
-        'message'      => 'Vendor registered successfully',
-        'access_token' => $token,
-        'token_type'   => 'Bearer',
-        'vendor'       => $vendor
-    ], 201);
+            $token = $vendor->createToken('auth_token')->plainTextToken;
 
-} catch (Exception $e) {
-    return response()->json(['error' => $e->getMessage()], 500);
-}
-     
+            return response()->json([
+                'message'      => 'Vendor registered successfully',
+                'access_token' => $token,
+                'token_type'   => 'Bearer',
+                'vendor'       => $vendor
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
 
-   
-public function login(Request $request)
-{
-    $request->validate([
-        'vendor_email'    => 'required|email',
-        'vendor_password' => 'required',
-    ]);
 
-    $user = hotelModel::where('vendor_email', $request->vendor_email)->first();
+    public function login(Request $request)
+    {
+        $request->validate([
+            'vendor_email'    => 'required|email',
+            'vendor_password' => 'required',
+        ]);
 
-    if (!$user || !Hash::check($request->vendor_password, $user->vendor_password)) {
-        return response()->json(['error' => 'Invalid credentials'], 401);
+          $user = hotelModel::where('vendor_email', $request->vendor_email)->first();
+
+         if (!$user || !Hash::check($request->vendor_password, $user->vendor_password)) {
+             return response()->json(['error' => 'Invalid credentials'], 401);
+         }
+
+        // If you're using Sanctum, uncomment this:
+        $token = '214|anagha_gGINbySKqDNKbcjulL6a5tg8ZDdIRlK6yC80BfrF229f0c74';
+
+        return response()->json([
+            'message'      => 'Login successful',
+            'access_token' => $token,
+            'user'         => $user
+        ]);
     }
-
-    // If you're using Sanctum, uncomment this:
-     $token = '214|anagha_gGINbySKqDNKbcjulL6a5tg8ZDdIRlK6yC80BfrF229f0c74';
-
-    return response()->json([
-        'message'      => 'Login successful',
-        'access_token' => $token,
-        'user'         => $user
-    ]);
-}
 
 
     // ✅ LOGOUT
@@ -143,7 +142,7 @@ public function login(Request $request)
     }
 
     // ✅ Get All Vendors
-    
+
     public function index()
     {
         return hotelModel::with('user')->get();

@@ -4,11 +4,12 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use App\Models\hotelModel;
 class HotelRoomsModel extends Model
 {
-     use HasFactory;
-   protected $primaryKey = 'hotel_roomId';
+    use HasFactory;
+
+    protected $primaryKey = 'hotel_roomId';
     protected $table = 'hotel_rooms';
 
     protected $fillable = [
@@ -34,7 +35,6 @@ class HotelRoomsModel extends Model
         'amenities',
         'rooms_image',
         'hotel_vendor_id',
-
     ];
 
     protected $casts = [
@@ -46,8 +46,14 @@ class HotelRoomsModel extends Model
         'checkInTime' => 'datetime:H:i',
         'checkOutTime' => 'datetime:H:i',
     ];
-    //  public function hotel()
-    // {
-    //     return $this->belongsTo(hotelModel::class, 'hotel_vendor_id');
-    // }
+
+    // ✅ FIXED: Added third argument for correct PK in hotelModel
+    public function hotel()
+    {
+        return $this->belongsTo(hotelModel::class, 'hotel_vendor_id', 'hotel_vendor_id');
+    }
+    public function roomhotel()
+{
+    return $this->hasMany(\App\Models\HotelRoomsModel::class, 'hotel_vendor_id', 'hotel_vendor_id');
+}
 }
