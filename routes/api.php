@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\EmailController;
+use App\Http\Controllers\HoltelBookingController;
 use App\Http\Controllers\HotelRoomsController;
 use App\Http\Controllers\HotelVender;
 use App\Http\Controllers\orderController;
@@ -54,5 +55,25 @@ Route::get('/hotel-rooms/{id}', [HotelRoomsController::class, 'show']);
 Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  
 Route::post('/hotel-rooms/{id}', [HotelRoomsController::class, 'update']);   
 Route::delete('/hotel-rooms/{id}', [HotelRoomsController::class, 'destroy']);  
-Route::get('/hotel-available-rooms', [HotelRoomsController::class, 'search']);     
+Route::get('/hotel-available-rooms-exact', [HotelRoomsController::class, 'exectFindingRooms']);     
+Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'matchingPrice']);     
 
+
+
+// it is possible  when it am bookin  the hotle chek firstly  (check in and check out time)  in mid  
+//   not present  user give check in and check out  date have   
+//    if this is have then check  roomType  is qual to user side roomType  then one more chek  no. of room  !==0 
+
+// Booking CRUD + Extra Functions
+Route::prefix('bookings')->group(function () {
+
+    Route::get('/', [HoltelBookingController::class, 'index']);
+    Route::post('/', [HoltelBookingController::class, 'store']);
+    Route::get('/vendor/{vendorId}', [HoltelBookingController::class, 'bookingsByVendor']);
+    Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']);
+    Route::post('/check-availability', [HoltelBookingController::class, 'checkAvailability']);
+    Route::put('/{id}', [HoltelBookingController::class, 'update']);
+    Route::patch('/{id}/cancel', [HoltelBookingController::class, 'cancel']);
+    Route::delete('/{id}', [HoltelBookingController::class, 'destroy']);
+
+});

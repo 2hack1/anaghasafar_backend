@@ -54,6 +54,14 @@ class HotelRoomsModel extends Model
     }
     public function roomhotel()
 {
-    return $this->hasMany(\App\Models\HotelRoomsModel::class, 'hotel_vendor_id', 'hotel_vendor_id');
+    return $this->belongsTo(\App\Models\HotelRoomsModel::class, 'hotel_vendor_id', 'hotel_vendor_id');
 }
+public function bookings()
+{
+    return $this->hasMany(HoltelBookingModel::class, 'hotel_roomId');
+}
+public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }
