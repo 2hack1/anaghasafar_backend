@@ -85,8 +85,9 @@ class HoltelBookingController extends Controller
     //     }
     // }
 
-    public function checkAvailability(Request $request)
-{
+    public function checkAvailability(Request $request)  
+    
+    {
     $validator = Validator::make($request->all(), [
         'hotel_roomId' => 'required|integer',
         'check_in_date' => 'required|date',
