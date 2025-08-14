@@ -233,63 +233,7 @@ class HotelRoomsController extends Controller
     }
 
 
-// public function makeCombo(Request $request)
-// {
-//     $city = $request->input('city');
-//     $requiredRooms = (int) $request->input('rooms', 1);
-//     $requiredAdults = (int) $request->input('adults', 0);
-//     $requiredChildren = (int) $request->input('children', 0);
 
-//     // ✅ Step 1: Get hotels that have enough total rooms
-//     $hotels = hotelModel::with('rooms')
-//         ->where('city', $city)
-//         ->where('totalrooms', '>=', $requiredRooms)
-//         ->get();
-
-//     $matchedRooms = [];
-//     $nonMatchedRooms = [];
-
-//     foreach ($hotels as $hotel) {
-//         foreach ($hotel->rooms as $room) {
-//             if (
-//                 $room->max_adults >= $requiredAdults &&
-//                 $room->max_children >= $requiredChildren
-//             ) {
-//                 // ✅ Room matches requirements
-//                 $matchedRooms[] = [
-//                     'hotel_id' => $hotel->id,
-//                     'hotel_name' => $hotel->name,
-//                     'room' => $room
-//                 ];
-//             } else {
-//                 // ❌ Room doesn't match, calculate how many rooms needed
-//                 $neededRoomsForAdults = ($requiredAdults > 0 && $room->max_adults > 0)
-//                     ? ceil($requiredAdults / $room->max_adults)
-//                     : 0;
-
-//                 $neededRoomsForChildren = ($requiredChildren > 0 && $room->max_children > 0)
-//                     ? ceil($requiredChildren / $room->max_children)
-//                     : 0;
-
-//                 $calculatedNeededRooms = max($neededRoomsForAdults, $neededRoomsForChildren);
-
-//                 $nonMatchedRooms[] = [
-//                     // 'hotel_id' => $hotel->id,
-//                     // 'hotel_name' => $hotel->name,
-//                     'room' => $room,
-//                     'calculated_needed_rooms' => $room->numRooms * $room->finalPrice,
-//                     // 'calculated_needed_rooms' => $calculatedNeededRooms
-//                 ];
-//             }
-//         }
-//     }
-
-//     return response()->json([
-//         'status' => true,
-//         'matched_rooms' => $matchedRooms,
-//         'non_matched_rooms' => $nonMatchedRooms
-//     ]);
-// }
 
 
 
@@ -339,8 +283,7 @@ public function exectFindingRooms(Request $request)
 
 
 
-
-public function matchingPrice(Request $request)
+public function combo(Request $request)
 {
     $city = $request->input('city');
     $requiredRooms = (int) $request->input('rooms', 1);
@@ -357,6 +300,80 @@ public function matchingPrice(Request $request)
         ->where('city', $city)
         ->where('totalrooms', '>=', $requiredRooms)
         ->get();
+
+    $matchedRooms = [];
+    $nonMatchedRooms = [];
+
+    foreach ($hotels as $hotel) {
+        foreach ($hotel->rooms as $room) {
+            if (
+                $room->maxChildren >= $requiredAdults &&
+                $room->maxChildren >= $requiredChildren
+            ) {
+                
+                // ✅ Room matches requirements
+                $matchedRooms[] = [
+                    'hotel_id' => $hotel->id,
+                    'hotel_name' => $hotel->name,
+                    'room' => $room
+                ];
+            } else {
+                // ❌ Room doesn't match, calculate how many rooms needed
+                $neededRoomsForAdults = ($requiredAdults > 0 && $room->maxAdults > 0)
+                    ? ceil($requiredAdults / $room->maxAdults)
+                    : 0;
+
+                $neededRoomsForChildren = ($requiredChildren > 0 && $room->maxChildren > 0)
+                    ? ceil($requiredChildren / $room->maxChildren)
+                    : 0;
+
+                    // dd($requiredChildren, $room->maxChildren);
+                $calculatedNeededRooms = max($neededRoomsForAdults, $neededRoomsForChildren);
+
+                $nonMatchedRooms[] = [
+                    'hotel_id' => $hotel->id,
+                    'hotel_name' => $hotel->name,
+                    'room' => $room,
+                    'calculated_needed_rooms' => $calculatedNeededRooms
+                ];
+            }
+        }
+    }
+
+    return response()->json([
+        'status' => true,
+        'matched_rooms' => $matchedRooms,
+        'non_matched_rooms' => $nonMatchedRooms
+        
+    ]);
+}
+
+
+
+public function matchingPrice(Request $request)
+{
+    $city = $request->input('city');
+    $requiredRooms = (int) $request->input('rooms', 1);
+    $requiredAdults = (int) $request->input('adults', 0);
+    $requiredChildren = (int) $request->input('children', 0);
+    $minPrice = (float) $request->input('min_price', 0);
+    $maxPrice = (float) $request->input('max_price', PHP_INT_MAX);
+
+    // // ✅ Step 1: Get hotels that have enough total rooms
+    // $hotels = hotelModel::with(['rooms' => function ($query) use ($minPrice, $maxPrice) {
+    //     // Filter rooms by final_price range
+    //     $query->whereBetween('finalPrice', [$minPrice, $maxPrice]);
+    // }])
+    //     ->where('city', $city)
+    //     ->where('totalrooms', '>=', $requiredRooms)
+    //     ->get();
+    $hotels = hotelModel::with(['rooms' => function ($query) {
+    // No price filter here
+}])
+    ->where('city', $city)
+    ->where('totalrooms', '>=', $requiredRooms)
+    ->get();
+
 
     $matchedRooms = [];
     $nonMatchedRooms = [];
