@@ -11,6 +11,7 @@ class HoltelBookingModel extends Model
 
     protected $table = 'booking_details';
 
+
     protected $fillable = [
         'user_id',
         'hotel_vendor_id',
@@ -28,6 +29,7 @@ class HoltelBookingModel extends Model
         'transaction_id',
         'status',
         'special_requests',
+        'rooms_available',
     ];
 
     // Relationships

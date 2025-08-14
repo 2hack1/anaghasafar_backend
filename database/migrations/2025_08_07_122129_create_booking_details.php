@@ -9,11 +9,12 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
+
    public function up(): void
 {
     Schema::create('booking_details', function (Blueprint $table) {
-        $table->id();
-
+       
+        $table->id('id');
         // Relationships
         $table->unsignedBigInteger('user_id');        // Who booked
         $table->unsignedBigInteger('hotel_vendor_id');       // Which hotel

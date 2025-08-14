@@ -50,13 +50,13 @@ Route::middleware('auth:api')->group(function () {
 
 
 
-Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);     
-Route::get('/hotel-rooms/{id}', [HotelRoomsController::class, 'show']);   
-Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  
-Route::post('/hotel-rooms/{id}', [HotelRoomsController::class, 'update']);   
-Route::delete('/hotel-rooms/{id}', [HotelRoomsController::class, 'destroy']);  
-Route::get('/hotel-available-rooms-exact', [HotelRoomsController::class, 'exectFindingRooms']);     
-Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'matchingPrice']);     
+Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);    // on used 
+Route::get('/hotel-rooms/{id}', [HotelRoomsController::class, 'show']);  // on used 
+Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  // on used
+Route::post('/hotel-rooms/{id}', [HotelRoomsController::class, 'update']);  // on used 
+Route::delete('/hotel-rooms/{id}', [HotelRoomsController::class, 'destroy']);  // on used
+Route::get('/hotel-available-rooms-exact', [HotelRoomsController::class, 'exectFindingRooms']);   // on used  
+Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'matchingPrice']);     // on used
 
 
 
@@ -67,13 +67,13 @@ Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'matchi
 // Booking CRUD + Extra Functions
 Route::prefix('bookings')->group(function () {
 
-    Route::get('/', [HoltelBookingController::class, 'index']);
-    Route::post('/', [HoltelBookingController::class, 'store']);
-    Route::get('/vendor/{vendorId}', [HoltelBookingController::class, 'bookingsByVendor']);
-    Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']);
+    Route::get('/', [HoltelBookingController::class, 'index']);      //currently not  used
+    Route::post('/', [HoltelBookingController::class, 'store']);   //currently not  used
+    Route::get('/vendor/{vendorId}', [HoltelBookingController::class, 'bookingsByVendor']); //currently not  used
+    Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']); //currently not  used
     Route::post('/check-availability', [HoltelBookingController::class, 'checkAvailability']);
-    Route::put('/{id}', [HoltelBookingController::class, 'update']);
-    Route::patch('/{id}/cancel', [HoltelBookingController::class, 'cancel']);
-    Route::delete('/{id}', [HoltelBookingController::class, 'destroy']);
+    Route::put('/{id}', [HoltelBookingController::class, 'update']); // not  used
+    Route::patch('/{id}/cancel', [HoltelBookingController::class, 'cancel']);  //currently not  used
+    Route::delete('/{id}', [HoltelBookingController::class, 'destroy']);  //currently not  used
 
 });

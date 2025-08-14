@@ -3,10 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Models\HoltelBookingModel;
-use App\Models\hotelModel;
 use App\Models\HotelRoomsModel;
+use Exception;
 use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Validator;
 
 class HoltelBookingController extends Controller
@@ -43,124 +42,89 @@ class HoltelBookingController extends Controller
         return response()->json($bookings);
     }
 
-    /**
-     * Check room availability before booking
-     */
-    // public function checkAvailability(Request $request)
-    // {
-    //     $validator = Validator::make($request->all(), [
-    //         'hotel_roomId' => 'required|integer',
-    //         'check_in_date' => 'required|date',
-    //         'check_out_date' => 'required|date|after:check_in_date',
-    //         'rooms_booked' => 'required|integer|min:1',
-    //     ]);
-
-    //     if ($validator->fails()) {
-    //         return response()->json(['errors' => $validator->errors()], 422);
-    //     }
-   
-    //     $bookedRooms = HoltelBookingModel::where('hotel_roomId', $request->hotel_roomId)
-    //         ->where(function ($query) use ($request) {
-    //             $query->whereBetween('check_in_date', [$request->check_in_date, $request->check_out_date])
-    //                 ->orWhereBetween('check_out_date', [$request->check_in_date, $request->check_out_date])
-    //                 ->orWhere(function ($query) use ($request) {
-    //                     $query->where('check_in_date', '<', $request->check_in_date)
-    //                         ->where('check_out_date', '>', $request->check_out_date);
-    //                 });
-    //         })
-    //         ->sum('rooms_booked');
-
-    //     $room = HotelRoomsModel::find($request->hotel_roomId);
-
-    //     if (!$room) {
-    //         return response()->json(['message' => 'Room not found'], 404);
-    //     }
-
-    //     $availableRooms = $room->numRooms - $bookedRooms;
-
-    //     if ($availableRooms >= $request->rooms_booked) {
-    //         return response()->json(['available' => true, 'availableRooms' => $availableRooms]);
-    //     } else {
-    //         return response()->json(['available' => false, 'availableRooms' => $availableRooms]);
-    //     }
-    // }
-
-    public function checkAvailability(Request $request)  
     
+    public function checkAvailability(Request $request)
+
     {
-    $validator = Validator::make($request->all(), [
-        'hotel_roomId' => 'required|integer',
-        'check_in_date' => 'required|date',
-        'check_out_date' => 'required|date|after:check_in_date',
-        'rooms_booked' => 'required|integer|min:1',
-        'roomType' => 'required|string',
-    ]);
 
-    if ($validator->fails()) {
-        return response()->json(['errors' => $validator->errors()], 422);
-    }
+        try{
+//    dd($request->all());
+            
+        $validator = Validator::make($request->all(), [
+            'hotel_roomId' => 'required|integer',
+            'check_in_date' => 'required|date|after:check_in_date',
+            'check_out_date' => 'required|date|after:check_out_date',
+            'rooms_booked' => 'required|integer|min:1',
+            'roomType' => 'required|string',
+        ]);
 
-    $room = HotelRoomsModel::find($request->hotel_roomId);
+       
+        // if ($validator->fails()) {
+        //     return response()->json(['errors' => $validator->errors()], 422);
+        // }
 
-    if (!$room) {
-        return response()->json(['message' => 'Room not found'], 404);
-    }
+        $room = HotelRoomsModel::find($request->hotel_roomId);
 
-    // Generate all dates between check_in and check_out
-    $userDates = [];
-    $period = new \DatePeriod(
-        new \DateTime($request->check_in_date),
-        new \DateInterval('P1D'),
-        (new \DateTime($request->check_out_date))->modify('+1 day')
-    );
+        if (!$room) {
+            return response()->json(['message' => 'Room not found'], 404);
+        }
 
-    foreach ($period as $date) {
-        $userDates[] = $date->format('Y-m-d');
-    }
-
-    // Fetch all existing bookings for this room
-    $bookings = HoltelBookingModel::where('hotel_roomId', $request->hotel_roomId)->get();
-
-    $overlapFound = false;
-    $bookedRoomsCount = 0;
-
-    foreach ($bookings as $booking) {
-        $bookingPeriod = new \DatePeriod(
-            new \DateTime($booking->check_in_date),
+        // Generate all dates between check_in and check_out
+        $userDates = [];
+        $period = new \DatePeriod(
+            new \DateTime($request->check_in_date),
             new \DateInterval('P1D'),
-            (new \DateTime($booking->check_out_date))->modify('+1 day')
+            (new \DateTime($request->check_out_date))->modify('+1 day')
         );
 
-        $bookingDates = [];
-        foreach ($bookingPeriod as $bDate) {
-            $bookingDates[] = $bDate->format('Y-m-d');
+        foreach ($period as $date) {
+            $userDates[] = $date->format('Y-m-d');
         }
 
-        // Check if any user date exists in booking dates
-        if (count(array_intersect($userDates, $bookingDates)) > 0) {
-            $overlapFound = true;
-            // Sum booked rooms for these dates
-            $bookedRoomsCount += $booking->rooms_booked;
+        // Fetch all existing bookings for this room
+        $bookings = HoltelBookingModel::where('hotel_roomId', $request->hotel_roomId)->get();
+
+        $overlapFound = false;
+        $bookedRoomsCount = 0;
+
+        foreach ($bookings as $booking) {
+            $bookingPeriod = new \DatePeriod(
+                new \DateTime($booking->check_in_date),
+                new \DateInterval('P1D'),
+                (new \DateTime($booking->check_out_date))->modify('+1 day')
+            );
+
+            $bookingDates = [];
+            foreach ($bookingPeriod as $bDate) {
+                $bookingDates[] = $bDate->format('Y-m-d');
+            }
+
+            // Check if any user date exists in booking dates
+            if (count(array_intersect($userDates, $bookingDates)) > 0) {
+                $overlapFound = true;
+                // Sum booked rooms for these dates
+                $bookedRoomsCount += $booking->rooms_booked;
+            }
         }
+
+        // If overlap found, ceckh room type and availability
+        if ($overlapFound) {
+            if (strtolower($room->roomType) !== strtolower($request->roomType)) {
+                return response()->json(['available' => false, 'reason' => 'Room type mismatch']);
+            }
+            $availableRooms = $room->numRooms - $bookedRoomsCount;
+            if ($availableRooms > 0 && $availableRooms >= $request->rooms_booked) {
+                return response()->json(['available' => true, 'availableRooms' => $availableRooms]);
+            } else {
+                return response()->json(['available' => false, 'availableRooms' => $availableRooms]);
+            }
+        }
+    }catch(Exception $s){
+         dd($s);  
+          }
+
+        // No overlap → all rooms available
     }
-
-    // If overlap found, check room type and availability
-    if ($overlapFound) {
-        if (strtolower($room->roomType) !== strtolower($request->roomType)) {
-            return response()->json(['available' => false, 'reason' => 'Room type mismatch']);
-        }
-
-        $availableRooms = $room->numRooms - $bookedRoomsCount;
-        if ($availableRooms > 0 && $availableRooms >= $request->rooms_booked) {
-            return response()->json(['available' => true, 'availableRooms' => $availableRooms]);
-        } else {
-            return response()->json(['available' => false, 'availableRooms' => $availableRooms]);
-        }
-    }
-
-    // No overlap → all rooms available
-    return response()->json(['available' => true, 'availableRooms' => $room->numRooms]);
-}
 
     /**
      * Store a new booking
@@ -184,6 +148,7 @@ class HoltelBookingController extends Controller
             'transaction_id' => 'nullable|string',
             'status' => 'required|string',
             'special_requests' => 'nullable|string',
+            'rooms_available'   => 'integer|min:0', 
         ]);
 
         if ($validator->fails()) {
@@ -243,4 +208,5 @@ class HoltelBookingController extends Controller
 
         return response()->json(['message' => 'Booking deleted successfully']);
     }
+
 }

@@ -364,9 +364,10 @@ public function matchingPrice(Request $request)
     foreach ($hotels as $hotel) {
         foreach ($hotel->rooms as $room) {
             if (
-                $room->max_adults >= $requiredAdults &&
-                $room->max_children >= $requiredChildren
+                $room->maxChildren >= $requiredAdults &&
+                $room->maxChildren >= $requiredChildren
             ) {
+                
                 // ✅ Room matches requirements
                 $matchedRooms[] = [
                     'hotel_id' => $hotel->id,
@@ -375,14 +376,15 @@ public function matchingPrice(Request $request)
                 ];
             } else {
                 // ❌ Room doesn't match, calculate how many rooms needed
-                $neededRoomsForAdults = ($requiredAdults > 0 && $room->max_adults > 0)
-                    ? ceil($requiredAdults / $room->max_adults)
+                $neededRoomsForAdults = ($requiredAdults > 0 && $room->maxAdults > 0)
+                    ? ceil($requiredAdults / $room->maxAdults)
                     : 0;
 
-                $neededRoomsForChildren = ($requiredChildren > 0 && $room->max_children > 0)
-                    ? ceil($requiredChildren / $room->max_children)
+                $neededRoomsForChildren = ($requiredChildren > 0 && $room->maxChildren > 0)
+                    ? ceil($requiredChildren / $room->maxChildren)
                     : 0;
 
+                    // dd($requiredChildren, $room->maxChildren);
                 $calculatedNeededRooms = max($neededRoomsForAdults, $neededRoomsForChildren);
 
                 $nonMatchedRooms[] = [
