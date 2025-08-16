@@ -51,12 +51,12 @@ Route::middleware('auth:api')->group(function () {
 
 
 Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);    // on used 
-Route::get('/hotel-rooms/{id}', [HotelRoomsController::class, 'show']);  // on used 
+Route::get('/hotels/{hotelId}/rooms/{roomId}', [HotelRoomsController::class, 'show']);  //  used 
 Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  // on used
 Route::post('/hotel-rooms/{id}', [HotelRoomsController::class, 'update']);  // on used 
 Route::delete('/hotel-rooms/{id}', [HotelRoomsController::class, 'destroy']);  // on used
 Route::get('/hotel-available-rooms-exact', [HotelRoomsController::class, 'exectFindingRooms']);   // on used  
-Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'matchingPrice']);     // on used
+Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'combo']);     // on used
 
 
 

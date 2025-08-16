@@ -104,21 +104,43 @@ class HotelRoomsController extends Controller
         ]);
     }
 
-    public function show($id)
-    {
-        $room = HotelRoomsModel::find($id);
-        if (!$room) {
-            return response()->json([
-                'status' => false,
-                'message' => 'Room not found'
-            ], 404);
-        }
+    // public function show($id)
+    // {
+    //     $room = HotelRoomsModel::find($id);
+    //     if (!$room) {
+    //         return response()->json([
+    //             'status' => false,
+    //             'message' => 'Room not found'
+    //         ], 404);
+    //     }
 
+    //     return response()->json([
+    //         'status' => true,
+    //         'data' => $room
+    //     ]);
+    // }
+
+
+    public function show($hotelId, $roomId)
+{
+    $room = HotelRoomsModel::with('hotel')
+        ->where('hotel_vendor_id', $hotelId)
+        ->where('hotel_roomId', $roomId)
+        ->first();
+
+    if (!$room) {
         return response()->json([
-            'status' => true,
-            'data' => $room
-        ]);
+            'status' => false,
+            'message' => 'Room not found for this hotel'
+        ], 404);
     }
+
+    return response()->json([
+        'status' => true,
+        'data' => $room
+    ]);
+}
+
 
     public function destroy($id)
     {
@@ -240,188 +262,173 @@ class HotelRoomsController extends Controller
 
 
 
-public function exectFindingRooms(Request $request)
-{
-    $request->validate([
-        'city'      => 'required|string',
-        'adults'    => 'required|integer|min:1',
-        'min_price'  => 'required|numeric|min:0',
-        'max_price'  => 'required|numeric|min:0',
-        'checkin'   => 'required|date_format:Y-m-d',
-        'checkout'  => 'required|date_format:Y-m-d|after_or_equal:checkin',
-    ]);
+    public function exectFindingRooms(Request $request)
+    {
+        $request->validate([
+            'city'      => 'required|string',
+            'adults'    => 'required|integer|min:1',
+            'min_price'  => 'required|numeric|min:0',
+            'max_price'  => 'required|numeric|min:0',
+            'checkin'   => 'required|date_format:Y-m-d',
+            'checkout'  => 'required|date_format:Y-m-d|after_or_equal:checkin',
+        ]);
 
-    $city       = $request->city;
-    $adults     = $request->adults;
-    $minPrice   = $request->min_price;
-    $maxPrice   = $request->max_price;
-    $checkin = $request->checkin;
-    $checkout = $request->checkout;
+        $city       = $request->city;
+        $adults     = $request->adults;
+        $minPrice   = $request->min_price;
+        $maxPrice   = $request->max_price;
+        $checkin = $request->checkin;
+        $checkout = $request->checkout;
 
-    // ✅ Fetch rooms that meet all 3 conditions
-    $rooms = HotelRoomsModel::whereHas('hotel', function($query) use ($city) {
+        // ✅ Fetch rooms that meet all 3 conditions
+        $rooms = HotelRoomsModel::whereHas('hotel', function ($query) use ($city) {
             $query->where('city', $city);
         })
-        ->where('maxAdults', '>=', $adults)
-        ->whereBetween('finalPrice', [$minPrice, $maxPrice])
-        ->with('hotel') // eager load hotel details
-        ->get();
+            ->where('maxAdults', '>=', $adults)
+            ->whereBetween('finalPrice', [$minPrice, $maxPrice])
+            ->with('hotel') // eager load hotel details
+            ->get();
 
-    if ($rooms->isEmpty()) {
+        if ($rooms->isEmpty()) {
+            return response()->json([
+                'message' => 'No rooms found for the given city, adults, and price range.'
+            ], 404);
+        }
+
         return response()->json([
-            'message' => 'No rooms found for the given city, adults, and price range.'
-        ], 404);
+            'message' => 'Matching rooms found.',
+            'rooms'   => $rooms,
+            'checkin' => Carbon::parse($checkin)->format('Y-m-d'),
+            'checkout' => Carbon::parse($checkout)->format('Y-m-d')
+        ]);
     }
 
-    return response()->json([
-        'message' => 'Matching rooms found.',
-        'rooms'   => $rooms,
-        'checkin' => Carbon::parse($checkin)->format('Y-m-d'),
-        'checkout' => Carbon::parse($checkout)->format('Y-m-d')
-    ]);
-}
 
 
+    public function combo(Request $request)
+    {
+        $city = $request->input('city');
+        $requiredRooms = (int) $request->input('rooms', 1);
+        $requiredAdults = (int) $request->input('adults', 0);
+        $requiredChildren = (int) $request->input('children', 0);
+        $minPrice = (float) $request->input('min_price', 0);
+        $maxPrice = (float) $request->input('max_price', PHP_INT_MAX);
 
-public function combo(Request $request)
-{
-    $city = $request->input('city');
-    $requiredRooms = (int) $request->input('rooms', 1);
-    $requiredAdults = (int) $request->input('adults', 0);
-    $requiredChildren = (int) $request->input('children', 0);
-    $minPrice = (float) $request->input('min_price', 0);
-    $maxPrice = (float) $request->input('max_price', PHP_INT_MAX);
+        // ✅ Step 1: Get hotels that have enough total rooms
+        $hotels = hotelModel::with(['rooms' => function ($query) use ($minPrice, $maxPrice) {
+            // Filter rooms by final_price range
+            $query->whereBetween('finalPrice', [$minPrice, $maxPrice]);
+        }])
+            ->where('city', $city)
+            ->where('totalrooms', '>=', $requiredRooms)
+            ->get();
 
-    // ✅ Step 1: Get hotels that have enough total rooms
-    $hotels = hotelModel::with(['rooms' => function ($query) use ($minPrice, $maxPrice) {
-        // Filter rooms by final_price range
-        $query->whereBetween('finalPrice', [$minPrice, $maxPrice]);
-    }])
-        ->where('city', $city)
-        ->where('totalrooms', '>=', $requiredRooms)
-        ->get();
+        $matchedRooms = [];
+        $nonMatchedRooms = [];
 
-    $matchedRooms = [];
-    $nonMatchedRooms = [];
+        foreach ($hotels as $hotel) {
+            foreach ($hotel->rooms as $room) {
+                if (
+                    $room->maxChildren >= $requiredAdults &&
+                    $room->maxChildren >= $requiredChildren
+                ) {
 
-    foreach ($hotels as $hotel) {
-        foreach ($hotel->rooms as $room) {
-            if (
-                $room->maxChildren >= $requiredAdults &&
-                $room->maxChildren >= $requiredChildren
-            ) {
-                
-                // ✅ Room matches requirements
-                $matchedRooms[] = [
-                    'hotel_id' => $hotel->id,
-                    'hotel_name' => $hotel->name,
-                    'room' => $room
-                ];
-            } else {
-                // ❌ Room doesn't match, calculate how many rooms needed
-                $neededRoomsForAdults = ($requiredAdults > 0 && $room->maxAdults > 0)
-                    ? ceil($requiredAdults / $room->maxAdults)
-                    : 0;
+                    // ✅ Room matches requirements
+                    $matchedRooms[] = [
+                        'hotel' => $hotel,
+                        'room' => $room
+                    ];
+                } else {
+                    // ❌ Room doesn't match, calculate how many rooms needed
+                    $neededRoomsForAdults = ($requiredAdults > 0 && $room->maxAdults > 0)
+                        ? ceil($requiredAdults / $room->maxAdults)
+                        : 0;
 
-                $neededRoomsForChildren = ($requiredChildren > 0 && $room->maxChildren > 0)
-                    ? ceil($requiredChildren / $room->maxChildren)
-                    : 0;
+                    $neededRoomsForChildren = ($requiredChildren > 0 && $room->maxChildren > 0)
+                        ? ceil($requiredChildren / $room->maxChildren)
+                        : 0;
 
                     // dd($requiredChildren, $room->maxChildren);
-                $calculatedNeededRooms = max($neededRoomsForAdults, $neededRoomsForChildren);
+                    $calculatedNeededRooms = max($neededRoomsForAdults, $neededRoomsForChildren);
 
-                $nonMatchedRooms[] = [
-                    'hotel_id' => $hotel->id,
-                    'hotel_name' => $hotel->name,
-                    'room' => $room,
-                    'calculated_needed_rooms' => $calculatedNeededRooms
-                ];
+                    $nonMatchedRooms[] = [
+                        'hotel' => $hotel,
+                        'room' => $room,
+                        'calculated_needed_rooms' => $calculatedNeededRooms
+                    ];
+                }
             }
         }
+
+        return response()->json([
+            'status' => true,
+            'matched_rooms' => $matchedRooms,
+            'non_matched_rooms' => $nonMatchedRooms
+
+        ]);
     }
 
-    return response()->json([
-        'status' => true,
-        'matched_rooms' => $matchedRooms,
-        'non_matched_rooms' => $nonMatchedRooms
-        
-    ]);
-}
+
+    public function matchingPrice(Request $request)
+    {
+        $city = $request->input('city');
+        $requiredRooms = (int) $request->input('rooms', 1);
+        $requiredAdults = (int) $request->input('adults', 0);
+        $requiredChildren = (int) $request->input('children', 0);
+        $minPrice = (float) $request->input('min_price', 0);
+        $maxPrice = (float) $request->input('max_price', PHP_INT_MAX);
+        $hotels = hotelModel::with(['rooms' => function ($query) {
+            // No price filter here
+        }])
+            ->where('city', $city)
+            ->where('totalrooms', '>=', $requiredRooms)
+            ->get();
 
 
+        $matchedRooms = [];
+        $nonMatchedRooms = [];
 
-public function matchingPrice(Request $request)
-{
-    $city = $request->input('city');
-    $requiredRooms = (int) $request->input('rooms', 1);
-    $requiredAdults = (int) $request->input('adults', 0);
-    $requiredChildren = (int) $request->input('children', 0);
-    $minPrice = (float) $request->input('min_price', 0);
-    $maxPrice = (float) $request->input('max_price', PHP_INT_MAX);
+        foreach ($hotels as $hotel) {
+            foreach ($hotel->rooms as $room) {
+                if (
+                    $room->maxChildren >= $requiredAdults &&
+                    $room->maxChildren >= $requiredChildren
+                ) {
 
-    // // ✅ Step 1: Get hotels that have enough total rooms
-    // $hotels = hotelModel::with(['rooms' => function ($query) use ($minPrice, $maxPrice) {
-    //     // Filter rooms by final_price range
-    //     $query->whereBetween('finalPrice', [$minPrice, $maxPrice]);
-    // }])
-    //     ->where('city', $city)
-    //     ->where('totalrooms', '>=', $requiredRooms)
-    //     ->get();
-    $hotels = hotelModel::with(['rooms' => function ($query) {
-    // No price filter here
-}])
-    ->where('city', $city)
-    ->where('totalrooms', '>=', $requiredRooms)
-    ->get();
+                    // ✅ Room matches requirements
+                    $matchedRooms[] = [
+                        'hotel_id' => $hotel->id,
+                        'hotel_name' => $hotel->name,
+                        'room' => $room
+                    ];
+                } else {
+                    // ❌ Room doesn't match, calculate how many rooms needed
+                    $neededRoomsForAdults = ($requiredAdults > 0 && $room->maxAdults > 0)
+                        ? ceil($requiredAdults / $room->maxAdults)
+                        : 0;
 
-
-    $matchedRooms = [];
-    $nonMatchedRooms = [];
-
-    foreach ($hotels as $hotel) {
-        foreach ($hotel->rooms as $room) {
-            if (
-                $room->maxChildren >= $requiredAdults &&
-                $room->maxChildren >= $requiredChildren
-            ) {
-                
-                // ✅ Room matches requirements
-                $matchedRooms[] = [
-                    'hotel_id' => $hotel->id,
-                    'hotel_name' => $hotel->name,
-                    'room' => $room
-                ];
-            } else {
-                // ❌ Room doesn't match, calculate how many rooms needed
-                $neededRoomsForAdults = ($requiredAdults > 0 && $room->maxAdults > 0)
-                    ? ceil($requiredAdults / $room->maxAdults)
-                    : 0;
-
-                $neededRoomsForChildren = ($requiredChildren > 0 && $room->maxChildren > 0)
-                    ? ceil($requiredChildren / $room->maxChildren)
-                    : 0;
+                    $neededRoomsForChildren = ($requiredChildren > 0 && $room->maxChildren > 0)
+                        ? ceil($requiredChildren / $room->maxChildren)
+                        : 0;
 
                     // dd($requiredChildren, $room->maxChildren);
-                $calculatedNeededRooms = max($neededRoomsForAdults, $neededRoomsForChildren);
+                    $calculatedNeededRooms = max($neededRoomsForAdults, $neededRoomsForChildren);
 
-                $nonMatchedRooms[] = [
-                    'hotel_id' => $hotel->id,
-                    'hotel_name' => $hotel->name,
-                    'room' => $room,
-                    'calculated_needed_rooms' => $calculatedNeededRooms
-                ];
+                    $nonMatchedRooms[] = [
+                        'hotel_id' => $hotel->id,
+                        'hotel_name' => $hotel->name,
+                        'room' => $room,
+                        'calculated_needed_rooms' => $calculatedNeededRooms
+                    ];
+                }
             }
         }
+
+        return response()->json([
+            'status' => true,
+            'matched_rooms' => $matchedRooms,
+            'non_matched_rooms' => $nonMatchedRooms
+
+        ]);
     }
-
-    return response()->json([
-        'status' => true,
-        'matched_rooms' => $matchedRooms,
-        'non_matched_rooms' => $nonMatchedRooms
-        
-    ]);
-}
-
-
-
 }
