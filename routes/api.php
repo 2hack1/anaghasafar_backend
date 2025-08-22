@@ -45,11 +45,6 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('vendor/{id}', [HotelVender::class, 'destroy']);
 });
 
-
-
-
-
-
 Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);    // on used 
 Route::get('/hotels/{hotelId}/rooms/{roomId}', [HotelRoomsController::class, 'show']);  //  used 
 Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  // on used
@@ -60,9 +55,6 @@ Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'combo'
 
 
 
-// it is possible  when it am bookin  the hotle chek firstly  (check in and check out time)  in mid  
-//   not present  user give check in and check out  date have   
-//    if this is have then check  roomType  is qual to user side roomType  then one more chek  no. of room  !==0 
 
 // Booking CRUD + Extra Functions
 Route::prefix('bookings')->group(function () {

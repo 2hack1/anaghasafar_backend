@@ -21,6 +21,8 @@ class HoltelBookingController extends Controller
     /**
      * Get bookings by hotel vendor
      */
+
+    
     public function bookingsByVendor($vendorId)
     {
         $bookings = HoltelBookingModel::with(['user', 'hotelRoom'])
@@ -42,89 +44,80 @@ class HoltelBookingController extends Controller
         return response()->json($bookings);
     }
 
-    
+
     public function checkAvailability(Request $request)
-
     {
-
-        try{
-//    dd($request->all());
-            
-        $validator = Validator::make($request->all(), [
-            'hotel_roomId' => 'required|integer',
-            'check_in_date' => 'required|date|after:check_in_date',
-            'check_out_date' => 'required|date|after:check_out_date',
-            'rooms_booked' => 'required|integer|min:1',
-            'roomType' => 'required|string',
+        // ✅ Step 1: Validate request
+        $request->validate([
+            'hotel_roomId'   => 'required|integer',
+            'hotel_vendor_id' => 'required|integer',
+            'roomType'       => 'required|string',
+            'check_in_date'  => 'required|date',
+            'check_out_date' => 'required|date|after:check_in_date',
+            'rooms_required' => 'required|integer|min:1',
         ]);
 
-       
-        // if ($validator->fails()) {
-        //     return response()->json(['errors' => $validator->errors()], 422);
-        // }
+        $hotelRoomId   = $request->hotel_roomId;
+        $hotelVendorId = $request->hotel_vendor_id;
+        $roomType      = $request->roomType;
+        $checkIn       = $request->check_in_date;
+        $checkOut      = $request->check_out_date;
+        $roomsRequired = $request->rooms_required;
 
-        $room = HotelRoomsModel::find($request->hotel_roomId);
+        // ✅ Step 2: Get total rooms of this type from HotelRoomsModel
+        
+        $room = HotelRoomsModel::where('hotel_roomId', $hotelRoomId)
+            ->where('hotel_vendor_id', $hotelVendorId)
+            ->where('roomType', $roomType)
+            ->first();
 
         if (!$room) {
-            return response()->json(['message' => 'Room not found'], 404);
+            return response()->json([
+                'available' => false,
+                'message'   => 'Room type not found for this hotel',
+            ], 404);
         }
 
-        // Generate all dates between check_in and check_out
-        $userDates = [];
-        $period = new \DatePeriod(
-            new \DateTime($request->check_in_date),
-            new \DateInterval('P1D'),
-            (new \DateTime($request->check_out_date))->modify('+1 day')
-        );
+        $totalRooms = $room->numRooms;
 
-        foreach ($period as $date) {
-            $userDates[] = $date->format('Y-m-d');
+        // ✅ Step 3: Check if this roomType has any existing bookings
+        $bookings = HoltelBookingModel::where('hotel_roomId', $hotelRoomId)
+            ->where('roomType', $roomType)
+            ->where(function ($query) use ($checkIn, $checkOut) {
+                // Overlapping condition
+                $query->where('check_in_date', '<', $checkOut)
+                    ->where('check_out_date', '>', $checkIn);
+            })
+            ->get();
+
+        if ($bookings->count() > 0) {
+            // ✅ Step 4: Calculate already booked rooms
+            $alreadyBooked = $bookings->sum('rooms_booked');
+            $availableRooms = $totalRooms - $alreadyBooked;
+        } else {
+            // No bookings → all rooms available
+            $availableRooms = $totalRooms;
         }
 
-        // Fetch all existing bookings for this room
-        $bookings = HoltelBookingModel::where('hotel_roomId', $request->hotel_roomId)->get();
-
-        $overlapFound = false;
-        $bookedRoomsCount = 0;
-
-        foreach ($bookings as $booking) {
-            $bookingPeriod = new \DatePeriod(
-                new \DateTime($booking->check_in_date),
-                new \DateInterval('P1D'),
-                (new \DateTime($booking->check_out_date))->modify('+1 day')
-            );
-
-            $bookingDates = [];
-            foreach ($bookingPeriod as $bDate) {
-                $bookingDates[] = $bDate->format('Y-m-d');
-            }
-
-            // Check if any user date exists in booking dates
-            if (count(array_intersect($userDates, $bookingDates)) > 0) {
-                $overlapFound = true;
-                // Sum booked rooms for these dates
-                $bookedRoomsCount += $booking->rooms_booked;
-            }
+        // ✅ Step 5: Compare with requested rooms
+        if ($availableRooms >= $roomsRequired) {
+            return response()->json([
+                'available'       => true,
+                'availableRooms'  => $availableRooms,
+                'totalRooms'      => $totalRooms,
+                'require_room'    =>  $roomsRequired,
+                'message'         => 'Rooms available',
+            ]);
+        } else {
+            return response()->json([
+                'available'       => false,
+                'availableRooms'  => $availableRooms,
+                'totalRooms'      => $totalRooms,
+                'message'         => 'Not enough rooms available',
+            ]);
         }
-
-        // If overlap found, ceckh room type and availability
-        if ($overlapFound) {
-            if (strtolower($room->roomType) !== strtolower($request->roomType)) {
-                return response()->json(['available' => false, 'reason' => 'Room type mismatch']);
-            }
-            $availableRooms = $room->numRooms - $bookedRoomsCount;
-            if ($availableRooms > 0 && $availableRooms >= $request->rooms_booked) {
-                return response()->json(['available' => true, 'availableRooms' => $availableRooms]);
-            } else {
-                return response()->json(['available' => false, 'availableRooms' => $availableRooms]);
-            }
-        }
-    }catch(Exception $s){
-         dd($s);  
-          }
-
-        // No overlap → all rooms available
     }
+
 
     /**
      * Store a new booking
@@ -148,7 +141,7 @@ class HoltelBookingController extends Controller
             'transaction_id' => 'nullable|string',
             'status' => 'required|string',
             'special_requests' => 'nullable|string',
-            'rooms_available'   => 'integer|min:0', 
+            'rooms_available'   => 'integer|min:0',
         ]);
 
         if ($validator->fails()) {
@@ -208,5 +201,4 @@ class HoltelBookingController extends Controller
 
         return response()->json(['message' => 'Booking deleted successfully']);
     }
-
 }
