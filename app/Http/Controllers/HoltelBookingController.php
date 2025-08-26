@@ -136,10 +136,10 @@ class HoltelBookingController extends Controller
             'roomType' => 'required|string',
             'price_per_night' => 'required|numeric|min:0',
             'total_amount' => 'required|numeric|min:0',
-            'payment_status' => 'required|string',
+            'payment_status' => 'string',
             'payment_method' => 'nullable|string',
             'transaction_id' => 'nullable|string',
-            'status' => 'required|string',
+            'status' => 'string',
             'special_requests' => 'nullable|string',
             'rooms_available'   => 'integer|min:0',
         ]);
