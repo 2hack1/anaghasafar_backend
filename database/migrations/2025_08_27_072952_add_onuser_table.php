@@ -11,15 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('booking_details', function (Blueprint $table) {
-            $table->integer('rooms_available')
+        Schema::table('users', function (Blueprint $table) {
+            $table->string('user_mob_no1', 15)
                 ->nullable()
-                ->after('rooms_booked');
-            // Add after rooms_booked column
-            $table->json('room_no')
+                ->after('email');
+
+            $table->string('user_mob_no2', 15)
                 ->nullable()
-                ->after('rooms_available');
-        
+                ->after('user_mob_no1');
         });
     }
 
@@ -28,8 +27,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('booking_details', function (Blueprint $table) {
-            $table->dropColumn('rooms_available', 'room_no');
+        Schema::table('users', function (Blueprint $table) {
+            $table->dropColumn(['user_mob_no1', 'user_mob_no2']);
         });
     }
 };

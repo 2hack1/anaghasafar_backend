@@ -30,8 +30,12 @@ class HoltelBookingModel extends Model
         'status',
         'special_requests',
         'rooms_available',
+        'room_no',
+       
     ];
-
+  protected $casts = [
+        'room_no' => 'array', // 👈 this automatically handles JSON encode/decode
+    ];
     // Relationships
     public function user()
     {

@@ -6,8 +6,7 @@ use App\Http\Controllers\HoltelBookingController;
 use App\Http\Controllers\HotelRoomsController;
 use App\Http\Controllers\HotelVender;
 use App\Http\Controllers\orderController;
-
-
+use App\Http\Controllers\UserController;
 
 require base_path("/routes/api/destinaions.php");
 require base_path("/routes/api/subdestination.php");
@@ -69,3 +68,5 @@ Route::prefix('bookings')->group(function () {
     Route::delete('/{id}', [HoltelBookingController::class, 'destroy']);  //currently not  used
 
 });
+
+Route::get('/users/{id}', [UserController::class, 'show']);

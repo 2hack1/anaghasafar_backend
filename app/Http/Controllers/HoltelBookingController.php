@@ -122,6 +122,7 @@ class HoltelBookingController extends Controller
     /**
      * Store a new booking
      */
+    
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -142,6 +143,8 @@ class HoltelBookingController extends Controller
             'status' => 'string',
             'special_requests' => 'nullable|string',
             'rooms_available'   => 'integer|min:0',
+            'room_no' => 'nullable|array',
+            'room_no.*' => 'string',
         ]);
 
         if ($validator->fails()) {
