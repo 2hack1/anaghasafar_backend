@@ -21,15 +21,15 @@ class PackagesController extends Controller
         return response()->json($packages);
     }
 
-  public function  getPackageHomeLimit($sub_des_id)
-{
-      $packages = PackageModel::with('images')
+    public function  getPackageHomeLimit($sub_des_id)
+    {
+        $packages = PackageModel::with('images')
             ->where('sub_destination_id', $sub_des_id)
-            ->limit(5) 
+            ->limit(5)
             ->get();
 
         return response()->json($packages);
-}
+    }
 
 
     public function getPackageDetails($packageId)
@@ -57,7 +57,7 @@ class PackagesController extends Controller
             'departure_point'    => 'required|string|max:255',
             'about_trip'         => 'required|string',
             'sub_destination_id' => 'required|exists:sub_destination,sub_destination_id',
-        
+
         ]);
 
         if ($validator->fails()) {
@@ -73,80 +73,80 @@ class PackagesController extends Controller
 
 
 
-public function deleteByPackageId($package_id)
-{
-    DB::beginTransaction();
-
-    try {
-        $package = PackageModel::with(['images', 'itineraries', 'monthTours.datesTours', 'transports'])
-                    ->where('package_id', $package_id)
-                    ->firstOrFail();
-
-        // Delete related transports
-        $package->transports()->delete();
-
-        // Delete related itineraries
-        $package->itineraries()->delete();
-
-        // Delete related images
-        $package->images()->delete();
-
-        // Delete datestours under each month
-        foreach ($package->monthTours as $monthTour) {
-            $monthTour->datesTours()->delete();
-        }
-
-        // Delete monthTours
-        $package->monthTours()->delete();
-
-        // Finally, delete the package itself (hard delete)
-        $package->forceDelete(); // ← permanently delete from packages table
-
-        DB::commit();
-
-        return response()->json(['status' => true, 'message' => 'Package and related data deleted permanently.']);
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return response()->json([
-            'status' => false,
-            'message' => 'Failed to delete package.',
-            'error' => $e->getMessage(),
-        ], 500);
-    }
-}
-
-
-
-
-
-public function updatePackage(Request $request, $package_id){
-try{
+    public function deleteByPackageId($package_id)
     {
-        $validated = $request->validate([
-            'package_code'       => 'required|string|max:50',
-            'place_name'         => 'required|string|max:100',
-            'price_trip'         => 'required|numeric',
-            'duration_days'      => 'required|integer',
-            'origin'             => 'required|string|max:100',
-            'departure_point'    => 'required|string|max:100',
-            'about_trip'         => 'nullable|string',
-            'sub_destination_id' => 'required|integer',
-        ]);
+        DB::beginTransaction();
 
-    $package = PackageModel::findOrFail($package_id);
+        try {
+            $package = PackageModel::with(['images', 'itineraries', 'monthTours.datesTours', 'transports'])
+                ->where('package_id', $package_id)
+                ->firstOrFail();
 
-    $package->update($validated);
-    
-    return response()->json([
-        'status' => true,
-        'message' => 'Package updated successfully.',
-        'data' => $package
-    ]);
+            // Delete related transports
+            $package->transports()->delete();
+
+            // Delete related itineraries
+            $package->itineraries()->delete();
+
+            // Delete related images
+            $package->images()->delete();
+
+            // Delete datestours under each month
+            foreach ($package->monthTours as $monthTour) {
+                $monthTour->datesTours()->delete();
+            }
+
+            // Delete monthTours
+            $package->monthTours()->delete();
+
+            // Finally, delete the package itself (hard delete)
+            $package->forceDelete(); // ← permanently delete from packages table
+
+            DB::commit();
+
+            return response()->json(['status' => true, 'message' => 'Package and related data deleted permanently.']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to delete package.',
+                'error' => $e->getMessage(),
+            ], 500);
+        }
     }
-}catch(Exception $a){
-    dd($a);
-}
-}
+
+
+
+
+
+    public function updatePackage(Request $request, $package_id)
+    {
+        try { {
+                $validated = $request->validate([
+                    'package_code'       => 'required|string|max:50',
+                    'place_name'         => 'required|string|max:100',
+                    'price_trip'         => 'required|numeric',
+                    'duration_days'      => 'required|integer',
+                    'origin'             => 'required|string|max:100',
+                    'departure_point'    => 'required|string|max:100',
+                    'about_trip'         => 'nullable|string',
+                    'sub_destination_id' => 'required|integer',
+                ]);
+
+                $package = PackageModel::findOrFail($package_id);
+
+                $package->update($validated);
+
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Package updated successfully.',
+                    'data' => $package
+                ]);
+            }
+        } catch (Exception $a) {
+            dd($a);
+        }
+    }
 
 
 
@@ -265,5 +265,90 @@ try{
         }
     }
 
-   
+
+
+    public function searchPackages(Request $request)
+    {
+        $destination = $request->input('destination'); // optional
+        $selectedMonth = $request->input('selectedMonth'); // optional
+        $minPrice = $request->input('minPrice', 0);
+        $maxPrice = $request->input('maxPrice', PHP_INT_MAX);
+
+        // Adjust price range if minPrice > maxPrice → treat max as unlimited
+        if ($minPrice > $maxPrice) {
+            $maxPrice = PHP_INT_MAX;
+        }
+
+        // First, try to find packages matching all criteria
+        $packages = PackageModel::whereBetween('price_trip', [$minPrice, $maxPrice])
+            ->when($destination, function ($query, $destination) {
+                $query->where('place_name', 'LIKE', "%{$destination}%");
+            })
+            ->when($selectedMonth, function ($query, $selectedMonth) {
+                $query->whereHas('monthTours', function ($q) use ($selectedMonth) {
+                    $q->where('month', 'LIKE', "%{$selectedMonth}%");
+                });
+            })
+            ->with(['images', 'itineraries', 'monthTours', 'transports', 'gellery'])
+            ->get();
+
+        // Check if no package found
+        if ($packages->isEmpty()) {
+            // Fetch fallback packages only by price range
+            $fallbackPackages = PackageModel::whereBetween('price_trip', [$minPrice, $maxPrice])
+                ->with(['images', 'itineraries', 'monthTours', 'transports', 'gellery'])
+                ->get();
+
+            // If destination provided but no packages found
+            if ($destination) {
+                return response()->json([
+                    'status' => false,
+                    'message' => "This location '{$destination}' is not available. Showing packages with similar price range instead.",
+                    'data' => $fallbackPackages
+                ]);
+            }
+
+            // If no destination provided, just return price-based results
+            return response()->json([
+                'status' => true,
+                'message' => 'Showing packages within the selected price range.',
+                'data' => $fallbackPackages
+            ]);
+        }
+
+        // If packages found, return normally
+        return response()->json([
+            'status' => true,
+            'message' => 'Packages found successfully.',
+            'data' => $packages
+        ]);
+    }
+
+    public function getAllPlaces()
+    {
+        try {
+            // Fetch unique place names
+            $places = PackageModel::select('place_name')
+                ->distinct()
+                ->orderBy('place_name', 'ASC')
+                ->get();
+
+            // If no places found
+            if ($places->isEmpty()) {
+                return response()->json([
+                    'status' => false,
+                    'message' => 'No destinations found.',
+                    'data' => []
+                ]);
+            }
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Destinations fetched successfully.',
+                'data' => $places
+            ]);
+        } catch (Exception $e) {
+            dd($e);
+        }
+    }
 }

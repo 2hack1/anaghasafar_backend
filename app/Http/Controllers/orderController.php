@@ -68,13 +68,13 @@ class orderController extends Controller
 
             // Step 1: Match destination + subdestination
             $subDestination = Sub_DestinationModel::where('sub_destination_id', $orders->subdesId)
-                ->where('destination_id', $orders->destinationId)
+                // ->where('destination_id', $orders->destinationId)
                 ->first();
 
             $subdesId = $subDestination->sub_destination_id;
             // Step 2: Match subdestination + package
             $package = PackageModel::where('package_id', $orders->packagesId)
-                ->where('sub_destination_id', $subdesId)
+                // ->where('sub_destination_id', $subdesId)
                 ->first();
 
 
@@ -109,7 +109,7 @@ class orderController extends Controller
             return response()->json(['error' => $e->getMessage()], 500);
         }
     }
-
+ 
 
     public function get()
     {
@@ -130,36 +130,75 @@ class orderController extends Controller
                 $subdesId = $subDestination->sub_destination_id;
                 // Step 2: Match subdestination + package
                 $package = PackageModel::where('package_id', $order->packagesId)
-                    ->where('sub_destination_id', $subdesId)
+                
                     ->first();
                 $userdata = User::where('id', $order->userId)->get();
 
                 $results[] = [
                     'order_id'      =>    $order->id,
                     'created'        =>    $order->created_at,
-                    'place'  =>    $package->place_name,
+                    'place'  =>    $package,
                     'name'     =>    $userdata[0]->name,
                     'email'    =>    $userdata[0]->email,
                 ];
             }
             return response()->json($results, 200);
         } catch (\Exception $e) {
-            return response()->json(['error' => $e->getMessage()], 500);
+
+            return response()->json(['error' => $e->getMessage()], 200);
         }
     }
 
+    // public function get()
+    // {
+    //     try {
+    //         $orders = OrderModel::all();
+    //         $results = [];
 
-   public function deleteOrderById($orderId)
-{
-    $order = OrderModel::find($orderId);
 
-    if ($order) {
-        $order->delete();
-        return response()->json(['message' => 'Order deleted successfully.'], 200);
-    } else {
-        return response()->json(['message' => 'Order not found.'], 404);
+    //         foreach ($orders as $order) {
+    //             // Get user
+    //             $user = User::find($order->userId);
+    //             if (!$user) continue;
+                     
+    //             // Get subdestination matching order
+    //             $subDestination = Sub_DestinationModel::where('sub_destination_id', $order->subdesId)
+    //                 ->where('destination_id', $order->destinationId)
+    //                 ->first();
+
+    //             if (!$subDestination) continue;
+
+    //             // Get package for this subdestination
+    //             $package = PackageModel::where('package_id', $order->packagesId)
+    //                 ->where('sub_destination_id', $subDestination->sub_destination_id)
+    //                 ->first();
+
+    //             if (!$package) continue;
+
+    //             $results[] = [
+    //                 'order_id' => $order->id,
+    //                 'created'  => $order->created_at,
+    //                 'place'    => $package->place_name,
+    //                 'name'     => $user->name,
+    //                 'email'    => $user->email,
+    //             ];
+    //         }
+
+    //         return response()->json($results, 200);
+    //     } catch (\Exception $e) {
+    //         return response()->json(['error' => $e->getMessage()], 500);
+    //     }
+    // }
+
+    public function deleteOrderById($orderId)
+    {
+        $order = OrderModel::find($orderId);
+
+        if ($order) {
+            $order->delete();
+            return response()->json(['message' => 'Order deleted successfully.'], 200);
+        } else {
+            return response()->json(['message' => 'Order not found.'], 404);
+        }
     }
-}
-
-
 }

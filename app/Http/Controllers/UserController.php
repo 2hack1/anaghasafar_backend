@@ -39,8 +39,6 @@ class UserController extends Controller
         dd($e);
     }
 }
-
-
     public function show($id)
    {
     $user = User::find($id);
