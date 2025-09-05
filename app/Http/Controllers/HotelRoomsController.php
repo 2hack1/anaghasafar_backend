@@ -255,12 +255,6 @@ class HotelRoomsController extends Controller
     }
 
 
-
-
-
-
-
-
 //   ************************ check again  thsi exectFindingRooms coomment funtion **********************
     // public function exectFindingRooms(Request $request)
     // {
