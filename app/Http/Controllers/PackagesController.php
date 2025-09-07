@@ -205,7 +205,61 @@ class PackagesController extends Controller
         }
     }
 
+public function dssfilterPackages(Request $request , $sub_des_id)
+{
+    try {
+        $filters = $request->input('filters', []);
+        $priceFilters = $request->input('priceFilters', []);
 
+        // Start the query WITHOUT ->get()
+        $query = PackageModel::with('images');
+
+        // Apply TYPE filters (like duration, category)
+        if (!empty($filters)) {
+            $query->where(function ($q) use ($filters) {
+                foreach ($filters as $filter) {
+                    if ($filter === '1 Day') {
+                        $q->orWhere('duration_days', 1);
+                    } elseif ($filter === 'More Days') {
+                        $q->orWhere('duration_days', '>', 4);
+                    } elseif ($filter === '4 Days') {
+                        $q->orWhere('duration_days', 4);
+                    } elseif ($filter === 'Less Than 4 Days') {
+                        $q->orWhere('duration_days', '<', 4);
+                    } elseif ($filter === 'International') {
+                        $q->orWhere('type', 'LIKE', '%International%');
+                    } elseif ($filter === 'Wellness') {
+                        $q->orWhere('type', 'LIKE', '%Wellness%');
+                    }
+                }
+            });
+        }
+
+        // Apply PRICE filters
+        if (!empty($priceFilters)) {
+            $query->where(function ($q) use ($priceFilters) {
+                foreach ($priceFilters as $filter) {
+                    if ($filter === 'Expensive Tours') {
+                        $q->orWhere('price_trip', '>', 20000);
+                    } elseif ($filter === 'Under of Price 10000') {
+                        $q->orWhere('price_trip', '<', 10000);
+                    } elseif ($filter === 'Over of Price 6000') {
+                        $q->orWhere('price_trip', '>', 6000);
+                    } elseif ($filter === 'Low Pricingg') {
+                        $q->orWhere('price_trip', '<', 5000);
+                    }
+                }
+            });
+        }
+
+        // Execute query at the very end
+        $packages = $query->get();
+
+        return response()->json($packages);
+    } catch (\Exception $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+}
     public function check(Request $request)
     {
         try {
