@@ -93,7 +93,7 @@ class EmailController extends Controller
             <p>Warm regards,<br>
             <strong>Anagha Safar Team</strong></p>';
 
-            $mail->AltBody = "Dear Traveler,\n\nThank you for submitting your trip request with Anagha Safar.\nWe have received your application and our team will contact you shortly with a personalized plan.\n\nWarm regards,\nAnagha Safar Team";
+            $mail->AltBody ="Dear Traveler,\n\nThank you for submitting your trip request with Anagha Safar.\nWe have received your application and our team will contact you shortly with a personalized plan.\n\nWarm regards,\nAnagha Safar Team";
             $mail->send();
 
             return response()->json([
@@ -105,6 +105,53 @@ class EmailController extends Controller
         }
     }
 
+    
+     public function forgetUserPassSendEmail($email, $otp)
+{
+    $mail = new PHPMailer(true);
+
+    try {
+        // SMTP settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'anaghasolutions1@gmail.com'; // your Gmail
+        $mail->Password   = 'shms mvcx raet trkj';   // Gmail app password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        // Sender and recipient
+        $mail->setFrom('your_email@gmail.com', 'AnaghaSafar');
+        $mail->addAddress($email);
+
+        // Email content
+        $mail->isHTML(true);
+        $mail->Subject = 'Your OTP for Password Reset';
+        $mail->Body    = '
+            <p>Dear User,</p>
+            <p>You have requested to reset your password. Please use the following OTP to proceed:</p>
+            <h2>' . $otp . '</h2>
+            <p>This OTP is valid for 10 minutes.</p>
+            <p>Do not share this OTP with anyone.</p>
+            <p>Regards,<br><strong>AnaghaSafar Team</strong></p>
+        ';
+
+        $mail->AltBody = "Dear User,\n\nYour OTP for password reset is: $otp\n\nThis OTP is valid for 10 minutes.\nDo not share it with anyone.\n\nRegards,\nAnaghaSafar Team";
+
+        $mail->send();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'OTP has been sent to your email!'
+        ]);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Email could not be sent. Error: ' . $mail->ErrorInfo
+        ]);
+    }
+}
 
     
 }

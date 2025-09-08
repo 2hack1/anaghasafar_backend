@@ -99,7 +99,7 @@ class orderController extends Controller
                 'subdesId'      => $subdesId,
                 'packageId'     => $package,
                 'iteneris'     => $itenaries,
-                'date date'    => $monthdate,
+                'date'    => $monthdate,
                 'transport'   => $transport,
                 'userdata'   => $userdata
             ];
