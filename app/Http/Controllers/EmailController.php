@@ -107,10 +107,10 @@ class EmailController extends Controller
 
     
      public function forgetUserPassSendEmail($email, $otp)
-{
+   {
     $mail = new PHPMailer(true);
 
-    try {
+      try {
         // SMTP settings
         $mail->isSMTP();
         $mail->Host       = 'smtp.gmail.com';
@@ -150,8 +150,56 @@ class EmailController extends Controller
             'status' => 'error',
             'message' => 'Email could not be sent. Error: ' . $mail->ErrorInfo
         ]);
+      }
+   }
+
+
+   public function updatedPass($email, $newPassword)
+   {
+    $mail = new PHPMailer(true);
+
+    try {
+        // SMTP settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'anaghasolutions1@gmail.com'; // your Gmail
+        $mail->Password   = 'shms mvcx raet trkj'; // Gmail app password
+        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        // Sender and recipient
+        $mail->setFrom('your_email@gmail.com', 'AnaghaSafar');
+        $mail->addAddress($email);
+
+        // Email content
+        $mail->isHTML(true);
+        $mail->Subject = 'Your Password Has Been Updated';
+        $mail->Body    = '
+            <p>Dear User,</p>
+            <p>Your password has been updated successfully.</p>
+            <p>Your new password is: <strong>' . $newPassword . '</strong></p>
+            <p>If you did not perform this action, please contact support immediately.</p>
+            <p>Regards,<br><strong>AnaghaSafar Team</strong></p>
+        ';
+
+        $mail->AltBody = "Dear User,\n\nYour password has been updated successfully.\nYour new password is: $newPassword\n\nIf you did not perform this action, please contact support immediately.\n\nRegards,\nAnaghaSafar Team";
+
+        $mail->send();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Password updated and email sent!'
+        ]);
+
+    } catch (Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Email could not be sent. Error: ' . $mail->ErrorInfo
+        ]);
     }
 }
+
 
     
 }

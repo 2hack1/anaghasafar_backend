@@ -133,9 +133,9 @@ class UserController extends Controller
     }
 
 
-   
-   
-   
+
+
+
     public function generateAndSendOtp(Request $request)
     {
         $request->validate([
@@ -167,7 +167,7 @@ class UserController extends Controller
     }
 
     public function verifyOtp(Request $request)
-     {
+    {
         $request->validate([
             'email' => 'required|email',
             'otp'   => 'required|numeric',
@@ -197,7 +197,12 @@ class UserController extends Controller
             'status' => 'error',
             'message' => 'Invalid or expired OTP'
         ]);
-     }
+    }
+
+
+
+
+
 
     public function updatePassword(Request $request)
     {
@@ -217,29 +222,14 @@ class UserController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
-        // Check OTP from cache
-        // $cachedOtp = Cache::get('otp_' . $user->id);
-        // if (!$cachedOtp || $cachedOtp != $request->otp) {
-        //     return response()->json([
-        //         'status' => 'error',
-        //         'message' => 'Invalid or expired OTP'
-        //     ], 400);
-        // }
-
-        // Update password
         $user->password = Hash::make($request->new_password);
         $user->save();
-
-        // Remove OTP from cache
-        // Cache::forget('otp_' . $user->id);
+        $sendEmailController = new EmailController();
+        $sendEmailController->updatedPass($request->email,$request->new_password);
 
         return response()->json([
             'status' => 'success',
             'message' => 'Password updated successfully'
         ]);
     }
-
-
-
-
 }
