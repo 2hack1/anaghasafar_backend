@@ -201,5 +201,87 @@ class EmailController extends Controller
 }
 
 
+
+ public function roomNoSuccAdd($request)
+{
+    $mail = new \PHPMailer\PHPMailer\PHPMailer(true);
+
+    try {
+        // SMTP settings
+        $mail->isSMTP();
+        $mail->Host       = 'smtp.gmail.com';
+        $mail->SMTPAuth   = true;
+        $mail->Username   = 'anaghasolutions1@gmail.com'; // your Gmail
+        $mail->Password   = 'shms mvcx raet trkj'; // Gmail app password
+        $mail->SMTPSecure = \PHPMailer\PHPMailer\PHPMailer::ENCRYPTION_STARTTLS;
+        $mail->Port       = 587;
+
+        // Sender and recipient
+        $mail->setFrom('your_email@gmail.com', 'AnaghaSafar');
+        $mail->addAddress($request->email);
+
+        // Subject
+        $mail->isHTML(true);
+        $mail->Subject = 'Your Room Has Been Successfully Assigned';
+
+        // Professional HTML email body
+        $mail->Body = '
+        <div style="font-family: Arial, sans-serif; background-color: #f8f9fa; padding: 20px;">
+            <div style="max-width: 600px; margin: auto; background: #ffffff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); overflow: hidden;">
+                <div style="background: #007bff; padding: 15px; text-align: center; color: #ffffff;">
+                    <h2 style="margin: 0;">Booking Confirmation</h2>
+                </div>
+                <div style="padding: 20px; color: #333333; font-size: 15px; line-height: 1.6;">
+                    <p>Dear <strong>' . htmlspecialchars($request->user_name) . '</strong>,</p>
+                    <p>We are delighted to confirm your booking with <strong>' . htmlspecialchars($request->hotel_name) . '</strong>.</p>
+
+                    <h3 style="color:#007bff; margin-top: 20px;">Room Details</h3>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;">Room Number:</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>' . htmlspecialchars($request->room_no) . '</strong></td>
+                        </tr>
+                        <tr>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;">Room Type:</td>
+                            <td style="padding: 8px; border-bottom: 1px solid #eee;"><strong>' . htmlspecialchars($request->roomType) . '</strong></td>
+                        </tr>
+                    </table>
+
+                    <p style="margin-top: 20px;">We look forward to hosting you and ensuring a comfortable stay.</p>
+                    <p style="margin-top: 15px;">If you have any special requests or questions, please do not hesitate to contact us.</p>
+
+                    <p style="margin-top: 25px;">Warm regards,<br>
+                    <strong>AnaghaSafar Team</strong></p>
+                </div>
+                <div style="background: #f1f1f1; padding: 15px; text-align: center; font-size: 12px; color: #777;">
+                    © ' . date("Y") . ' AnaghaSafar. All rights reserved.
+                </div>
+            </div>
+        </div>
+        ';
+
+        // Plain text version
+        $mail->AltBody = "Dear {$request->user_name},\n\n"
+            . "We are delighted to confirm your booking with {$request->hotel_name}.\n\n"
+            . "Room Number: {$request->room_no}\n"
+            . "Room Type: {$request->roomType}\n\n"
+            . "We look forward to hosting you and ensuring a comfortable stay.\n\n"
+            . "Regards,\nAnaghaSafar Team";
+
+        $mail->send();
+
+        return response()->json([
+            'status' => 'success',
+            'message' => 'Professional booking confirmation email sent successfully!'
+        ]);
+
+    } catch (\Exception $e) {
+        return response()->json([
+            'status' => 'error',
+            'message' => 'Email could not be sent. Error: ' . $mail->ErrorInfo
+        ]);
+    }
+}
+
     
 }

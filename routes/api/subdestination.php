@@ -9,4 +9,4 @@ Route::prefix('subdestination')->group(function () {
     Route::post('/{sub_destinationId}', [Sub_DestinationController::class, 'store']);
 });
 Route::put('/ssubdestination/update/{id}', [Sub_DestinationController::class, 'update']);
-Route::delete('/ssubdestination/delete/{sub_destination_id}', [Sub_DestinationController::class, 'destroy']);
+Route::delete('/ssubdestination/delete/{sub_destination_id}', [Sub_DestinationController::class, 'destroy']); 
