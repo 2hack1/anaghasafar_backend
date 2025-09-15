@@ -30,6 +30,10 @@ class hotelModel extends Authenticatable
         'gstnumber',
         'licensefile',
         'hotel_images',
+        'cancellation_refund_policy',
+        'payment_policy',
+        'privacy_policy',
+        'terms_conditions'
     ];
 
     protected $casts = [

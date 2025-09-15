@@ -42,7 +42,35 @@ Route::middleware('auth:api')->group(function () {
     Route::post('vendor', [HotelVender::class, 'store']);
     Route::put('vendor/{id}', [HotelVender::class, 'update']);
     Route::delete('vendor/{id}', [HotelVender::class, 'destroy']);
+    
 });
+Route::post('/hotel/{id}/cancellation', [HotelVender::class, 'updateCancellationPolicy']);
+Route::post('/hotel/{id}/payment', [HotelVender::class, 'updatePaymentPolicy']);
+Route::post('/hotel/{id}/privacy', [HotelVender::class, 'updatePrivacyPolicy']);
+Route::post('/hotel/{id}/terms', [HotelVender::class, 'updateTermsConditions']);
+
+
+// Route::post('vendor/{id}', [HotelVender::class, 'test']);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Route::post('vendor/{id}/update-name-email', [HotelVender::class, 'updatevendornameemail']);
+ Route::get('get/vendor/{id}', [HotelVender::class, 'getVendorNameEmail']);
 
 Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);    // on used 
 Route::get('/hotels/{hotelId}/rooms/{roomId}', [HotelRoomsController::class, 'show']);  //  used 
@@ -72,7 +100,9 @@ Route::prefix('bookings')->group(function () {
     Route::get('/nortification/roomno', [HoltelBookingController::class, 'getnotification']); 
         Route::post('/addroomno/{bookingId}', [HoltelBookingController::class, 'addRoomno']); 
     Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']); //currently not  used
-
-});
+   Route::get('/wholebookingdata/{id}',[HoltelBookingController::class,'getBookingStats']);
+   Route::get('/recentlybooking/{id}',[HoltelBookingController::class,'getBookingDetails']);
+   
+});   
 
 Route::get('/users/{id}', [UserController::class, 'show']);

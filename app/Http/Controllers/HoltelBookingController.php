@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\EmailController;
+use App\Models\User;
 
 class HoltelBookingController extends Controller
 {
@@ -403,5 +404,70 @@ public function getnotification()
 
 
 
+public function getBookingStats($hotel_vendor_id)
+{
+    // ✅ Total bookings
+    $totalBookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)->count();
+
+    // ✅ Total revenue (only Confirmed / Completed)
+    $totalRevenue = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+        ->whereIn('status', ['Confirmed', 'Completed'])
+        ->sum('total_amount');
+
+    // ✅ Pending payments
+    $pendingPayments = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+        ->where('payment_status', 'Pending')
+        ->sum('total_amount');
+
+    // ✅ Confirmed bookings
+    $confirmedBookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+        ->where('status', 'Confirmed')
+        ->count();
+
+    // ✅ Total Rooms (from rooms table)
+    $totalRooms = HotelRoomsModel::where('hotel_vendor_id', $hotel_vendor_id)->sum('numRooms');
+
+    // ✅ Subtract only rooms with successful payment
+    $bookedRooms = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+        ->whereIn('payment_status', ['Success', 'Completed','Paid']) // only paid bookings
+        ->sum('rooms_booked');
+
+    $availableRooms = max($totalRooms - $bookedRooms, 0);
+
+    return response()->json([
+        'success'           => true,
+        'total_bookings'    => $totalBookings,
+        'total_revenue'     => $totalRevenue,
+        'pending_payments'  => $pendingPayments,
+        'confirmed'         => $confirmedBookings,
+        'available_rooms'   => $availableRooms,
+        'total_rooms'       => $totalRooms
+    ], 200);
+}
+
+public function getBookingDetails($hotel_vendor_id)
+{
+    $bookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+       
+        ->with('user') // load user relation
+        ->orderBy('check_in_date', 'asc') // ✅ sort by check-in date
+        ->get()
+        ->map(function ($booking) {
+            return [
+                'booking_id'     => $booking->id,
+                'username'       => $booking->user->name ?? 'Guest',
+                'check_in'       => $booking->check_in_date,
+                'check_out'      => $booking->check_out_date,
+                'payment_status' => $booking->payment_status,
+                'status'         => $booking->status,
+                'price'          => $booking->total_amount,
+            ];
+        });
+
+    return response()->json([
+        'success' => true,
+        'bookings' => $bookings
+    ]);
+}
 
 }

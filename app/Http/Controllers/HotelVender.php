@@ -111,11 +111,11 @@ class HotelVender extends Controller
             'vendor_password' => 'required',
         ]);
 
-          $user = hotelModel::where('vendor_email', $request->vendor_email)->first();
+        $user = hotelModel::where('vendor_email', $request->vendor_email)->first();
 
-         if (!$user || !Hash::check($request->vendor_password, $user->vendor_password)) {
-             return response()->json(['error' => 'Invalid credentials'], 401);
-         }
+        if (!$user || !Hash::check($request->vendor_password, $user->vendor_password)) {
+            return response()->json(['error' => 'Invalid credentials'], 401);
+        }
 
         // If you're using Sanctum, uncomment this:
         $token = '214|anagha_gGINbySKqDNKbcjulL6a5tg8ZDdIRlK6yC80BfrF229f0c74';
@@ -181,4 +181,168 @@ class HotelVender extends Controller
         $vendor->delete();
         return response()->json(['message' => 'Deleted successfully']);
     }
+
+
+    public function updatevendornameemail(Request $request, $id)
+    {
+        try {
+            // Validate input
+            $validator = Validator::make($request->all(), [
+                'vendor_name'  => 'required|string|max:255',
+                'vendor_email' => 'required|email|unique:hotel_vendors,vendor_email,' . $id . ',hotel_vendor_id',
+                // 👆 Ignore current vendor id based on hotel_vendor_id
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'errors' => $validator->errors()
+                ], 422);
+            }
+
+            // Find vendor
+            $vendor = hotelModel::find($id);
+
+            if (!$vendor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vendor not found'
+                ], 404);
+            }
+
+            // Update fields
+            $vendor->vendor_name  = $request->vendor_name;
+            $vendor->vendor_email = $request->vendor_email;
+            $vendor->save();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Vendor name and email updated successfully ✅',
+                'vendor'  => $vendor
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong ❌',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+
+    public function getVendorNameEmail($id)
+    {
+        try {
+            // Find vendor by ID
+            $vendor = hotelModel::find($id);
+
+            if (!$vendor) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Vendor not found ❌'
+                ], 404);
+            }
+
+            // Return only name & email
+            return response()->json([
+                'success' => true,
+                'vendor' => [
+                    'vendor_name'  => $vendor->vendor_name,
+                    'vendor_email' => $vendor->vendor_email,
+                ]
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Something went wrong ❌',
+                'error'   => $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function updateCancellationPolicy(Request $request, $id)
+{
+    // (Optional) validate only this field
+    $request->validate([
+        'cancellation_refund_policy' => 'required|string',
+    ]);
+    
+    // Find hotel
+    $hotel = hotelModel::find($id);
+    // dd($request->all());
+
+    if (!$hotel) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Hotel not found'
+        ], 404);
+    }
+
+    // Update only cancellation_refund_policy
+    $hotel->cancellation_refund_policy = $request->cancellation_refund_policy;
+    
+
+    $hotel->save();
+    return response()->json([
+        'success' => true,
+        'message' => 'Cancellation & Refund Policy updated successfully.',
+        'data' => $hotel
+    ]);
+}
+
+public function updatePaymentPolicy(Request $request, $id)
+{
+    $hotel = hotelModel::find($id);
+
+    if (!$hotel) {
+        return response()->json(['success' => false, 'message' => 'Hotel not found'], 404);
+    }
+
+    $hotel->payment_policy = $request->payment_policy;
+    $hotel->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Payment Policy updated successfully.',
+        'data' => $hotel
+    ]);
+}
+
+public function updatePrivacyPolicy(Request $request, $id)
+{
+    $hotel = hotelModel::find($id);
+
+    if (!$hotel) {
+        return response()->json(['success' => false, 'message' => 'Hotel not found'], 404);
+    }
+
+    $hotel->privacy_policy = $request->privacy_policy;
+    $hotel->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Privacy Policy updated successfully.',
+        'data' => $hotel
+    ]);
+}
+
+public function updateTermsConditions(Request $request, $id)
+{
+    $hotel = hotelModel::find($id);
+
+    if (!$hotel) {
+        return response()->json(['success' => false, 'message' => 'Hotel not found'], 404);
+    }
+
+    $hotel->terms_conditions = $request->terms_conditions;
+    $hotel->save();
+
+    return response()->json([
+        'success' => true,
+        'message' => 'Terms & Conditions updated successfully.',
+        'data' => $hotel
+    ]);
+}
+
+    
 }
