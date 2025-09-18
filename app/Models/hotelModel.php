@@ -33,7 +33,7 @@ class hotelModel extends Authenticatable
         'cancellation_refund_policy',
         'payment_policy',
         'privacy_policy',
-        'terms_conditions'
+        'terms_conditions',
     ];
 
     protected $casts = [

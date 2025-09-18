@@ -44,6 +44,8 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('vendor/{id}', [HotelVender::class, 'destroy']);
     
 });
+Route::get('vendor/alldata/{id}', [HotelVender::class, 'getAllVendorData']);
+
 Route::post('/hotel/{id}/cancellation', [HotelVender::class, 'updateCancellationPolicy']);
 Route::post('/hotel/{id}/payment', [HotelVender::class, 'updatePaymentPolicy']);
 Route::post('/hotel/{id}/privacy', [HotelVender::class, 'updatePrivacyPolicy']);
@@ -51,23 +53,6 @@ Route::post('/hotel/{id}/terms', [HotelVender::class, 'updateTermsConditions']);
 
 
 // Route::post('vendor/{id}', [HotelVender::class, 'test']);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 Route::post('vendor/{id}/update-name-email', [HotelVender::class, 'updatevendornameemail']);
  Route::get('get/vendor/{id}', [HotelVender::class, 'getVendorNameEmail']);
@@ -104,5 +89,8 @@ Route::prefix('bookings')->group(function () {
    Route::get('/recentlybooking/{id}',[HoltelBookingController::class,'getBookingDetails']);
    
 });   
+Route::get('/create-qr', [HoltelBookingController::class, 'createQR']);
+Route::get('/check/${qrId}', [HoltelBookingController::class, 'checkQRStatus']);
+
 
 Route::get('/users/{id}', [UserController::class, 'show']);

@@ -344,5 +344,15 @@ public function updateTermsConditions(Request $request, $id)
     ]);
 }
 
+public function getAllVendorData($id)
+{
+    $vendor = hotelModel::with(['rooms', 'user'])->find($id);
+
+    if (!$vendor) {
+        return response()->json(['message' => 'Vendor not found'], 404);
+    }
+
+    return response()->json($vendor);
+}
     
 }

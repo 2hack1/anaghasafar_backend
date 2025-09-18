@@ -24,7 +24,7 @@ class HoltelBookingController extends Controller
      * Get bookings by hotel vendor
      */
 
-    
+
     public function bookingsByVendor($vendorId)
     {
         $bookings = HoltelBookingModel::with(['user', 'hotelRoom'])
@@ -67,7 +67,7 @@ class HoltelBookingController extends Controller
         $roomsRequired = $request->rooms_required;
 
         // ✅ Step 2: Get total rooms of this type from HotelRoomsModel
-        
+
         $room = HotelRoomsModel::where('hotel_roomId', $hotelRoomId)
             ->where('hotel_vendor_id', $hotelVendorId)
             ->where('roomType', $roomType)
@@ -124,7 +124,7 @@ class HoltelBookingController extends Controller
     /**
      * Store a new booking
      */
-    
+
     public function store(Request $request)
     {
         $validator = Validator::make($request->all(), [
@@ -207,267 +207,315 @@ class HoltelBookingController extends Controller
         return response()->json(['message' => 'Booking deleted successfully']);
     }
 
-// public function addRoomno(Request $request, $bookingId)
-// {
-//     // Validate input
-//     $request->validate([
-//         'room_no'    => 'required|string|max:50',
-//         'email'      => 'required|email',
-//         'hotel_name' => 'required|string',
-//         'roomType'   => 'required|string',
-//         'user_name'  => 'required|string',
-//     ]);
+    // public function addRoomno(Request $request, $bookingId)
+    // {
+    //     // Validate input
+    //     $request->validate([
+    //         'room_no'    => 'required|string|max:50',
+    //         'email'      => 'required|email',
+    //         'hotel_name' => 'required|string',
+    //         'roomType'   => 'required|string',
+    //         'user_name'  => 'required|string',
+    //     ]);
 
-//     // Find booking by ID
-//     $booking = HoltelBookingModel::find($bookingId);
+    //     // Find booking by ID
+    //     $booking = HoltelBookingModel::find($bookingId);
 
-//     if (!$booking) {
-//         return response()->json([
-//             'success' => false,
-//             'message' => 'Booking not found',
-//         ], 404);
-//     }
+    //     if (!$booking) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Booking not found',
+    //         ], 404);
+    //     }
 
-//     // Update room number
-//     $booking->room_no = $request->room_no;
-//     $booking->save();
+    //     // Update room number
+    //     $booking->room_no = $request->room_no;
+    //     $booking->save();
 
-//     // ✅ Call email function after update
-//     $emailController = new EmailController();
-//     $emailController->roomNoSuccAdd($request);
+    //     // ✅ Call email function after update
+    //     $emailController = new EmailController();
+    //     $emailController->roomNoSuccAdd($request);
 
-//     return response()->json([
-//         'success' => true,
-//         'message' => 'Room number updated successfully and email sent.',
-//         'booking' => $booking
-//     ], 200);
-// }
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Room number updated successfully and email sent.',
+    //         'booking' => $booking
+    //     ], 200);
+    // }
 
-// public function addRoomno(Request $request, $bookingId)
-// {
-//     // Validate input
-//     $request->validate([
-//         'room_no'    => 'required|string|max:50',
-//         'email'      => 'required|email',
-//         'hotel_name' => 'required|string',
-//         'roomType'   => 'required|string',
-//         'user_name'  => 'required|string',
-//     ]);
+    // public function addRoomno(Request $request, $bookingId)
+    // {
+    //     // Validate input
+    //     $request->validate([
+    //         'room_no'    => 'required|string|max:50',
+    //         'email'      => 'required|email',
+    //         'hotel_name' => 'required|string',
+    //         'roomType'   => 'required|string',
+    //         'user_name'  => 'required|string',
+    //     ]);
 
-//     // Find booking by ID
-//     $booking = HoltelBookingModel::find($bookingId);
+    //     // Find booking by ID
+    //     $booking = HoltelBookingModel::find($bookingId);
 
-//     if (!$booking) {
-//         return response()->json([
-//             'success' => false,
-//             'message' => 'Booking not found',
-//         ], 404);
-//     }
+    //     if (!$booking) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'Booking not found',
+    //         ], 404);
+    //     }
 
-//     $newCheckIn  = $booking->check_in_date;
-//     $newCheckOut = $booking->check_out_date;
+    //     $newCheckIn  = $booking->check_in_date;
+    //     $newCheckOut = $booking->check_out_date;
 
-//     // ✅ Check if this room_no is already booked in the same date range
-//     $conflict = HoltelBookingModel::where('room_no', $request->room_no)
-//         ->where('id', '!=', $bookingId) // ignore current booking
-//         ->where(function ($query) use ($newCheckIn, $newCheckOut) {
-//             $query->where(function ($q) use ($newCheckIn, $newCheckOut) {
-//                 // case 1: existing booking check_in is inside new booking range
-//                 $q->whereBetween('check_in_date', [$newCheckIn, $newCheckOut]);
-//             })
-//             ->orWhere(function ($q) use ($newCheckIn, $newCheckOut) {
-//                 // case 2: existing booking check_out is inside new booking range
-//                 $q->whereBetween('check_out_date', [$newCheckIn, $newCheckOut]);
-//             })
-//             ->orWhere(function ($q) use ($newCheckIn, $newCheckOut) {
-//                 // case 3: existing booking completely covers new booking
-//                 $q->where('check_in_date', '<=', $newCheckIn)
-//                   ->where('check_out_date', '>=', $newCheckOut);
-//             });
-//         })
-//         ->exists();
+    //     // ✅ Check if this room_no is already booked in the same date range
+    //     $conflict = HoltelBookingModel::where('room_no', $request->room_no)
+    //         ->where('id', '!=', $bookingId) // ignore current booking
+    //         ->where(function ($query) use ($newCheckIn, $newCheckOut) {
+    //             $query->where(function ($q) use ($newCheckIn, $newCheckOut) {
+    //                 // case 1: existing booking check_in is inside new booking range
+    //                 $q->whereBetween('check_in_date', [$newCheckIn, $newCheckOut]);
+    //             })
+    //             ->orWhere(function ($q) use ($newCheckIn, $newCheckOut) {
+    //                 // case 2: existing booking check_out is inside new booking range
+    //                 $q->whereBetween('check_out_date', [$newCheckIn, $newCheckOut]);
+    //             })
+    //             ->orWhere(function ($q) use ($newCheckIn, $newCheckOut) {
+    //                 // case 3: existing booking completely covers new booking
+    //                 $q->where('check_in_date', '<=', $newCheckIn)
+    //                   ->where('check_out_date', '>=', $newCheckOut);
+    //             });
+    //         })
+    //         ->exists();
 
-//     if ($conflict) {
-//         return response()->json([
-//             'success' => false,
-//             'message' => 'This room number is already assigned to another booking within the selected dates.',
-//         ], 409);
-//     }
+    //     if ($conflict) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => 'This room number is already assigned to another booking within the selected dates.',
+    //         ], 409);
+    //     }
 
-//     // ✅ Update room number
-//     $booking->room_no = $request->room_no;
-//     $booking->save();
+    //     // ✅ Update room number
+    //     $booking->room_no = $request->room_no;
+    //     $booking->save();
 
-//     // ✅ Call email function after update
-//     $emailController = new EmailController();
-//     $emailController->roomNoSuccAdd($request);
+    //     // ✅ Call email function after update
+    //     $emailController = new EmailController();
+    //     $emailController->roomNoSuccAdd($request);
 
-//     return response()->json([
-//         'success' => true,
-//         'message' => 'Room number updated successfully and email sent.',
-//         'booking' => $booking
-//     ], 200);
-// }
-public function addRoomno(Request $request, $bookingId)
-{
-    // Validate input
-    $request->validate([
-        'room_no'    => 'required|string|max:50',
-        'email'      => 'required|email',
-        'hotel_name' => 'required|string',
-        'roomType'   => 'required|string',
-        'user_name'  => 'required|string',
-    ]);
+    //     return response()->json([
+    //         'success' => true,
+    //         'message' => 'Room number updated successfully and email sent.',
+    //         'booking' => $booking
+    //     ], 200);
+    // }
+    public function addRoomno(Request $request, $bookingId)
+    {
+        // Validate input
+        $request->validate([
+            'room_no'    => 'required|string|max:50',
+            'email'      => 'required|email',
+            'hotel_name' => 'required|string',
+            'roomType'   => 'required|string',
+            'user_name'  => 'required|string',
+        ]);
 
-    // Find booking by ID
-    $booking = HoltelBookingModel::find($bookingId);
+        // Find booking by ID
+        $booking = HoltelBookingModel::find($bookingId);
 
-    if (!$booking) {
+        if (!$booking) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Booking not found',
+            ], 404);
+        }
+
+        $newCheckIn  = $booking->check_in_date;
+        $newCheckOut = $booking->check_out_date;
+
+        // ✅ Check if same room is already booked for overlapping dates
+        $conflict = HoltelBookingModel::where('room_no', $request->room_no)
+            ->where('id', '!=', $bookingId) // ignore current booking
+            ->where(function ($query) use ($newCheckIn, $newCheckOut) {
+                $query->where(function ($q) use ($newCheckIn, $newCheckOut) {
+                    // existing booking overlaps with new booking
+                    $q->where('check_in_date', '<', $newCheckOut)
+                        ->where('check_out_date', '>', $newCheckIn);
+                });
+            })
+            ->exists();
+
+        if ($conflict) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This room number is already assigned to another booking during the selected dates.',
+            ], 409);
+        }
+
+        // ✅ If no conflict, assign the room
+        $booking->room_no = $request->room_no;
+        $booking->save();
+
+        // Send email notification
+        $emailController = new EmailController();
+        $emailController->roomNoSuccAdd($request);
+
         return response()->json([
-            'success' => false,
-            'message' => 'Booking not found',
-        ], 404);
+            'success' => true,
+            'message' => 'Room number assigned successfully and email sent.',
+            'booking' => $booking
+        ], 200);
     }
 
-    $newCheckIn  = $booking->check_in_date;
-    $newCheckOut = $booking->check_out_date;
 
-    // ✅ Check if same room is already booked for overlapping dates
-    $conflict = HoltelBookingModel::where('room_no', $request->room_no)
-        ->where('id', '!=', $bookingId) // ignore current booking
-        ->where(function ($query) use ($newCheckIn, $newCheckOut) {
-            $query->where(function ($q) use ($newCheckIn, $newCheckOut) {
-                // existing booking overlaps with new booking
-                $q->where('check_in_date', '<', $newCheckOut)
-                  ->where('check_out_date', '>', $newCheckIn);
-            });
-        })
-        ->exists();
+    public function getnotification()
+    {
+        $bookings = HoltelBookingModel::with(['user', 'hotelVendor', 'hotelRoom'])
+            ->whereNull('room_no')
+            ->orWhere('room_no', '[]')
+            ->get();
 
-    if ($conflict) {
-        return response()->json([
-            'success' => false,
-            'message' => 'This room number is already assigned to another booking during the selected dates.',
-        ], 409);
-    }
+        $notifications = [];
 
-    // ✅ If no conflict, assign the room
-    $booking->room_no = $request->room_no;
-    $booking->save();
+        foreach ($bookings as $booking) {
+            $createdAt = $booking->created_at ? $booking->created_at->format('d M Y, H:i') : 'N/A';
+            $checkIn   = $booking->check_in_date ? date('d M Y', strtotime($booking->check_in_date)) : 'N/A';
+            $checkOut  = $booking->check_out_date ? date('d M Y', strtotime($booking->check_out_date)) : 'N/A';
+            $hotelName = $booking->hotelVendor->hotelname;
 
-    // Send email notification
-    $emailController = new EmailController();
-    $emailController->roomNoSuccAdd($request);
-
-    return response()->json([
-        'success' => true,
-        'message' => 'Room number assigned successfully and email sent.',
-        'booking' => $booking
-    ], 200);
-}
-
-
-public function getnotification()
-{
-    $bookings = HoltelBookingModel::with(['user', 'hotelVendor', 'hotelRoom'])
-        ->whereNull('room_no')
-        ->orWhere('room_no', '[]')
-        ->get();
-
-    $notifications = [];
-
-    foreach ($bookings as $booking) {
-        $createdAt = $booking->created_at ? $booking->created_at->format('d M Y, H:i') : 'N/A';
-        $checkIn   = $booking->check_in_date ? date('d M Y', strtotime($booking->check_in_date)) : 'N/A';
-        $checkOut  = $booking->check_out_date ? date('d M Y', strtotime($booking->check_out_date)) : 'N/A';
-        $hotelName = $booking->hotelVendor->hotelname;
-
-        $notifications[] = [
-            'heading'    => 'Missing Room Number',
-            'sub'        => "Booking ID: {$booking->id} - Action Required",
-            'details'    => "A new booking has been created on {$createdAt} by {$booking->user->name} {$booking->user->email} for hotel '{$hotelName}' with room type '{$booking->roomType}'.
+            $notifications[] = [
+                'heading'    => 'Missing Room Number',
+                'sub'        => "Booking ID: {$booking->id} - Action Required",
+                'details'    => "A new booking has been created on {$createdAt} by {$booking->user->name} {$booking->user->email} for hotel '{$hotelName}' with room type '{$booking->roomType}'.
                               Check-in: {$checkIn}, Check-out: {$checkOut}. No room number has been assigned yet. Please update the room number.",
-            'message'    => 'Anagha Safar & Team',
-            'user_name'  => $booking->user->name ?? $booking->user_name,
-            'booking_id' => $booking->id,
-            'user_email' => $booking->user->email ?? $booking->email,
-            'room_type'  => $booking->roomType ?? ($booking->hotelRoom->room_type ?? 'N/A'),
-        ];
+                'message'    => 'Anagha Safar & Team',
+                'user_name'  => $booking->user->name ?? $booking->user_name,
+                'booking_id' => $booking->id,
+                'user_email' => $booking->user->email ?? $booking->email,
+                'room_type'  => $booking->roomType ?? ($booking->hotelRoom->room_type ?? 'N/A'),
+            ];
+        }
+
+        return response()->json([
+            'success'       => true,
+            'notifications' => $notifications,
+            'count'         => count($notifications)
+        ], 200);
     }
 
-    return response()->json([
-        'success'       => true,
-        'notifications' => $notifications,
-        'count'         => count($notifications)
-    ], 200);
-}
+
+
+    public function getBookingStats($hotel_vendor_id)
+    {
+        // ✅ Total bookings
+        $totalBookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)->count();
+
+        // ✅ Total revenue (only Confirmed / Completed)
+        $totalRevenue = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+            ->whereIn('status', ['Confirmed', 'Completed'])
+            ->sum('total_amount');
+
+        // ✅ Pending payments
+        $pendingPayments = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+            ->where('payment_status', 'Pending')
+            ->sum('total_amount');
+
+        // ✅ Confirmed bookings
+        $confirmedBookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+            ->where('status', 'Confirmed')
+            ->count();
+
+        // ✅ Total Rooms (from rooms table)
+        $totalRooms = HotelRoomsModel::where('hotel_vendor_id', $hotel_vendor_id)->sum('numRooms');
+
+        // ✅ Subtract only rooms with successful payment
+        $bookedRooms = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+            ->whereIn('payment_status', ['Success', 'Completed', 'Paid']) // only paid bookings
+            ->sum('rooms_booked');
+
+        $availableRooms = max($totalRooms - $bookedRooms, 0);
+
+        return response()->json([
+            'success'           => true,
+            'total_bookings'    => $totalBookings,
+            'total_revenue'     => $totalRevenue,
+            'pending_payments'  => $pendingPayments,
+            'confirmed'         => $confirmedBookings,
+            'available_rooms'   => $availableRooms,
+            'total_rooms'       => $totalRooms
+        ], 200);
+    }
+
+    public function getBookingDetails($hotel_vendor_id)
+    {
+        $bookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
+
+            ->with('user') // load user relation
+            ->orderBy('check_in_date', 'asc') // ✅ sort by check-in date
+            ->get()
+            ->map(function ($booking) {
+                return [
+                    'booking_id'     => $booking->id,
+                    'username'       => $booking->user->name ?? 'Guest',
+                    'check_in'       => $booking->check_in_date,
+                    'check_out'      => $booking->check_out_date,
+                    'payment_status' => $booking->payment_status,
+                    'status'         => $booking->status,
+                    'price'          => $booking->total_amount,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'bookings' => $bookings
+        ]);
+    }
 
 
 
-public function getBookingStats($hotel_vendor_id)
+    public function createQR()
 {
-    // ✅ Total bookings
-    $totalBookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)->count();
+    $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
 
-    // ✅ Total revenue (only Confirmed / Completed)
-    $totalRevenue = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
-        ->whereIn('status', ['Confirmed', 'Completed'])
-        ->sum('total_amount');
+    // Create Order
+    $order = $api->order->create([
+        'receipt'         => 'rcptid_11',
+        'amount'          => 50000, // paise (500 INR)
+        'currency'        => 'INR',
+        'payment_capture' => 1
+    ]);
 
-    // ✅ Pending payments
-    $pendingPayments = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
-        ->where('payment_status', 'Pending')
-        ->sum('total_amount');
-
-    // ✅ Confirmed bookings
-    $confirmedBookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
-        ->where('status', 'Confirmed')
-        ->count();
-
-    // ✅ Total Rooms (from rooms table)
-    $totalRooms = HotelRoomsModel::where('hotel_vendor_id', $hotel_vendor_id)->sum('numRooms');
-
-    // ✅ Subtract only rooms with successful payment
-    $bookedRooms = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
-        ->whereIn('payment_status', ['Success', 'Completed','Paid']) // only paid bookings
-        ->sum('rooms_booked');
-
-    $availableRooms = max($totalRooms - $bookedRooms, 0);
+    // Create QR Code
+    $qrCode = $api->qrCode->create([
+        'type'           => 'upi_qr',
+        'name'           => 'Test QR',
+        'usage'          => 'single_use',
+        'fixed_amount'   => true,
+        'payment_amount' => 50000,
+        'description'    => 'Payment via UPI QR',
+        'close_by'       => now()->addHour()->timestamp,
+        'notes'          => ['purpose' => 'Testing UPI QR'],
+         'close_by'       => now()->addMinutes(3)->timestamp
+    ]);
 
     return response()->json([
-        'success'           => true,
-        'total_bookings'    => $totalBookings,
-        'total_revenue'     => $totalRevenue,
-        'pending_payments'  => $pendingPayments,
-        'confirmed'         => $confirmedBookings,
-        'available_rooms'   => $availableRooms,
-        'total_rooms'       => $totalRooms
-    ], 200);
-}
-
-public function getBookingDetails($hotel_vendor_id)
-{
-    $bookings = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
-       
-        ->with('user') // load user relation
-        ->orderBy('check_in_date', 'asc') // ✅ sort by check-in date
-        ->get()
-        ->map(function ($booking) {
-            return [
-                'booking_id'     => $booking->id,
-                'username'       => $booking->user->name ?? 'Guest',
-                'check_in'       => $booking->check_in_date,
-                'check_out'      => $booking->check_out_date,
-                'payment_status' => $booking->payment_status,
-                'status'         => $booking->status,
-                'price'          => $booking->total_amount,
-            ];
-        });
-
-    return response()->json([
-        'success' => true,
-        'bookings' => $bookings
+        'order'   => $order->toArray(),
+        'qr_code' => $qrCode->toArray(),
+        'qr_id'    => $qrCode['id'],
     ]);
 }
+
+
+public function checkQRStatus($qrId)
+{
+    $api = new  \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+    $qr = $api->qrCode->fetch($qrId);
+
+    return response()->json([
+        'id'       => $qr['id'],
+        'status'   => $qr['status'],    // active / closed
+        'payments' => $qr['payments']   // 0 = not paid, >0 = payment made
+    ]);
+}
+
 
 }
