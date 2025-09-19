@@ -58,6 +58,7 @@ Route::post('vendor/{id}/update-name-email', [HotelVender::class, 'updatevendorn
  Route::get('get/vendor/{id}', [HotelVender::class, 'getVendorNameEmail']);
 
 Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);    // on used 
+Route::get('/hotel-roomswithid/{vendorId}', [HotelRoomsController::class, 'getRoomsByVendor']);    // on used 
 Route::get('/hotels/{hotelId}/rooms/{roomId}', [HotelRoomsController::class, 'show']);  //  used 
 
 Route::post('/hotel-rooms', [HotelRoomsController::class, 'store']);  //  used
@@ -68,21 +69,20 @@ Route::get('/hotel-available-rooms-exact', [HotelRoomsController::class, 'exectF
 Route::get('/hotel-available-rooms-price', [HotelRoomsController::class, 'combo']);     //  used
 
 
-
-
 // Booking CRUD + Extra Functions
 Route::prefix('bookings')->group(function () {
-
     Route::get('/', [HoltelBookingController::class, 'index']);      //currently not  used
     Route::post('/', [HoltelBookingController::class, 'store']);   //currently not  used
     Route::get('/vendor/{vendorId}', [HoltelBookingController::class, 'bookingsByVendor']); //currently not  used
     Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']); //currently not  used
-    Route::post('/check-availability', [HoltelBookingController::class, 'checkAvailability']);
-    Route::put('/{id}', [HoltelBookingController::class, 'update']); // not  used
+    Route::post('/check-availability', [HoltelBookingController::class,'checkAvailability']);
+    Route::put('/{id}', [HoltelBookingController::class, 'update']);  // not  used
     Route::patch('/{id}/cancel', [HoltelBookingController::class, 'cancel']);  //currently not  used
     Route::delete('/{id}', [HoltelBookingController::class, 'destroy']);  //currently not  used
+    
     // routes/api.php
-    Route::get('/nortification/roomno', [HoltelBookingController::class, 'getnotification']); 
+
+    Route::get('/nortification/roomno/{vendorId}', [HoltelBookingController::class, 'getnotification']); 
         Route::post('/addroomno/{bookingId}', [HoltelBookingController::class, 'addRoomno']); 
     Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']); //currently not  used
    Route::get('/wholebookingdata/{id}',[HoltelBookingController::class,'getBookingStats']);

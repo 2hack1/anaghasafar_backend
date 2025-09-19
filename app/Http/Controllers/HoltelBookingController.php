@@ -8,6 +8,7 @@ use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\EmailController;
+use App\Models\hotelModel;
 use App\Models\User;
 
 class HoltelBookingController extends Controller
@@ -367,41 +368,82 @@ class HoltelBookingController extends Controller
     }
 
 
-    public function getnotification()
-    {
-        $bookings = HoltelBookingModel::with(['user', 'hotelVendor', 'hotelRoom'])
-            ->whereNull('room_no')
-            ->orWhere('room_no', '[]')
-            ->get();
+    // public function getnotification()
+    // {
+    //     $bookings = HoltelBookingModel::with(['user', 'hotelVendor', 'hotelRoom'])
+    //         ->whereNull('room_no')
+    //         ->orWhere('room_no', '[]')
+    //         ->get();
 
-        $notifications = [];
+    //     $notifications = [];
 
-        foreach ($bookings as $booking) {
-            $createdAt = $booking->created_at ? $booking->created_at->format('d M Y, H:i') : 'N/A';
-            $checkIn   = $booking->check_in_date ? date('d M Y', strtotime($booking->check_in_date)) : 'N/A';
-            $checkOut  = $booking->check_out_date ? date('d M Y', strtotime($booking->check_out_date)) : 'N/A';
-            $hotelName = $booking->hotelVendor->hotelname;
+    //     foreach ($bookings as $booking) {
+    //         $createdAt = $booking->created_at ? $booking->created_at->format('d M Y, H:i') : 'N/A';
+    //         $checkIn   = $booking->check_in_date ? date('d M Y', strtotime($booking->check_in_date)) : 'N/A';
+    //         $checkOut  = $booking->check_out_date ? date('d M Y', strtotime($booking->check_out_date)) : 'N/A';
+    //         $hotelName = $booking->hotelVendor->hotelname;
 
-            $notifications[] = [
-                'heading'    => 'Missing Room Number',
-                'sub'        => "Booking ID: {$booking->id} - Action Required",
-                'details'    => "A new booking has been created on {$createdAt} by {$booking->user->name} {$booking->user->email} for hotel '{$hotelName}' with room type '{$booking->roomType}'.
-                              Check-in: {$checkIn}, Check-out: {$checkOut}. No room number has been assigned yet. Please update the room number.",
-                'message'    => 'Anagha Safar & Team',
-                'user_name'  => $booking->user->name ?? $booking->user_name,
-                'booking_id' => $booking->id,
-                'user_email' => $booking->user->email ?? $booking->email,
-                'room_type'  => $booking->roomType ?? ($booking->hotelRoom->room_type ?? 'N/A'),
-            ];
-        }
+    //         $notifications[] = [
+    //             'heading'    => 'Missing Room Number',
+    //             'sub'        => "Booking ID: {$booking->id} - Action Required",
+    //             'details'    => "A new booking has been created on {$createdAt} by {$booking->user->name} {$booking->user->email} for hotel '{$hotelName}' with room type '{$booking->roomType}'.
+    //                           Check-in: {$checkIn}, Check-out: {$checkOut}. No room number has been assigned yet. Please update the room number.",
+    //             'message'    => 'Anagha Safar & Team',
+    //             'user_name'  => $booking->user->name ?? $booking->user_name,
+    //             'booking_id' => $booking->id,
+    //             'user_email' => $booking->user->email ?? $booking->email,
+    //             'room_type'  => $booking->roomType ?? ($booking->hotelRoom->room_type ?? 'N/A'),
+    //         ];
+    //     }
 
-        return response()->json([
-            'success'       => true,
-            'notifications' => $notifications,
-            'count'         => count($notifications)
-        ], 200);
+    //     return response()->json([
+    //         'success'       => true,
+    //         'notifications' => $notifications,
+    //         'count'         => count($notifications)
+    //     ], 200);
+    // }
+
+public function getNotification($vendorId)
+{
+    $bookings = HoltelBookingModel::with(['user', 'hotelVendor', 'hotelRoom'])
+        ->where('hotel_vendor_id', $vendorId) // ✅ filter by vendor
+        ->where(function ($q) {               // ✅ group room_no conditions
+            $q->whereNull('room_no')
+              ->orWhere('room_no', '[]');
+        })
+        ->get();
+
+    $notifications = [];
+
+    foreach ($bookings as $booking) {
+        $createdAt = $booking->created_at ? $booking->created_at->format('d M Y, H:i') : 'N/A';
+        $checkIn   = $booking->check_in_date ? date('d M Y', strtotime($booking->check_in_date)) : 'N/A';
+        $checkOut  = $booking->check_out_date ? date('d M Y', strtotime($booking->check_out_date)) : 'N/A';
+        $hotelName = $booking->hotelVendor->hotelname ?? 'N/A';
+
+        $notifications[] = [
+            'heading'    => 'Missing Room Number',
+            'sub'        => "Booking ID: {$booking->id} - Action Required",
+            'details'    => "A new booking has been created on {$createdAt} by "
+                            .($booking->user->name ?? 'Guest')." "
+                            .($booking->user->email ?? '')." for hotel '{$hotelName}' with room type '"
+                            .($booking->roomType ?? 'N/A')."'.
+                            Check-in: {$checkIn}, Check-out: {$checkOut}.
+                            No room number has been assigned yet. Please update the room number.",
+            'message'    => 'Anagha Safar & Team',
+            'user_name'  => $booking->user->name ?? $booking->user_name,
+            'booking_id' => $booking->id,
+            'user_email' => $booking->user->email ?? $booking->email,
+            'room_type'  => $booking->roomType ?? ($booking->hotelRoom->room_type ?? 'N/A'),
+        ];
     }
 
+    return response()->json([
+        'success'       => true,
+        'notifications' => $notifications,
+        'count'         => count($notifications)
+    ], 200);
+}
 
 
     public function getBookingStats($hotel_vendor_id)
@@ -427,12 +469,22 @@ class HoltelBookingController extends Controller
         // ✅ Total Rooms (from rooms table)
         $totalRooms = HotelRoomsModel::where('hotel_vendor_id', $hotel_vendor_id)->sum('numRooms');
 
+
+        $vendoreBynorooms=hotelModel::where('hotel_vendor_id',$hotel_vendor_id)->get('totalrooms');
+
         // ✅ Subtract only rooms with successful payment
         $bookedRooms = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
             ->whereIn('payment_status', ['Success', 'Completed', 'Paid']) // only paid bookings
             ->sum('rooms_booked');
+        
+            if(!$vendoreBynorooms){
+                 $take= $totalRooms;  
+            }else{
+                 $take=(int)$vendoreBynorooms[0]->totalrooms; 
+            }
+        $availableRooms = max($take - $bookedRooms, 0);
 
-        $availableRooms = max($totalRooms - $bookedRooms, 0);
+    
 
         return response()->json([
             'success'           => true,
@@ -441,7 +493,8 @@ class HoltelBookingController extends Controller
             'pending_payments'  => $pendingPayments,
             'confirmed'         => $confirmedBookings,
             'available_rooms'   => $availableRooms,
-            'total_rooms'       => $totalRooms
+            'total_rooms'       => $take,
+             'byhotelroom'     =>$vendoreBynorooms       
         ], 200);
     }
 
@@ -454,6 +507,7 @@ class HoltelBookingController extends Controller
             ->get()
             ->map(function ($booking) {
                 return [
+                    'booking'  => $booking,
                     'booking_id'     => $booking->id,
                     'username'       => $booking->user->name ?? 'Guest',
                     'check_in'       => $booking->check_in_date,

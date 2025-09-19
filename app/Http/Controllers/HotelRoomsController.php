@@ -104,6 +104,18 @@ class HotelRoomsController extends Controller
         ]);
     }
 
+
+    public function getRoomsByVendor($hotel_vendor_id)
+{
+    // Fetch only rooms for the given hotel vendor
+    $rooms = HotelRoomsModel::where('hotel_vendor_id', $hotel_vendor_id)->get();
+
+    return response()->json([
+        'status' => true,
+        'data' => $rooms
+    ]);
+}
+
     // public function show($id)
     // {
     //     $room = HotelRoomsModel::find($id);

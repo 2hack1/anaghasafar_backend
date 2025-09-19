@@ -147,7 +147,7 @@ class HotelVender extends Controller
     {
         return hotelModel::with('user')->get();
     }
-
+ 
     // ✅ Get Specific Vendor
     public function show($id)
     {
