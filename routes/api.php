@@ -37,13 +37,13 @@ Route::post('vendor/register', [HotelVender::class, 'register']);
 Route::post('vendor/login', [HotelVender::class, 'login']);
 
 Route::middleware('auth:api')->group(function () {
-    Route::get('vendors', [HotelVender::class, 'index']);
     Route::get('vendor/{id}', [HotelVender::class, 'show']);
     Route::post('vendor', [HotelVender::class, 'store']);
     Route::put('vendor/{id}', [HotelVender::class, 'update']);
     Route::delete('vendor/{id}', [HotelVender::class, 'destroy']);
     
 });
+Route::get('vendors', [HotelVender::class, 'index']);
 Route::get('vendor/alldata/{id}', [HotelVender::class, 'getAllVendorData']);
 
 Route::post('/hotel/{id}/cancellation', [HotelVender::class, 'updateCancellationPolicy']);

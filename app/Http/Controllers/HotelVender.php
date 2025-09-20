@@ -15,7 +15,6 @@ class HotelVender extends Controller
     // ✅ REGISTER VENDOR + USER
     public function register(Request $request)
     {
-
         try {
             $validator = Validator::make($request->all(), [
                 'vendor_name'     => 'required',
