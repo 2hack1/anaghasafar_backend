@@ -548,7 +548,7 @@ public function getNotification($vendorId)
         'description'    => 'Payment via UPI QR',
         'close_by'       => now()->addHour()->timestamp,
         'notes'          => ['purpose' => 'Testing UPI QR'],
-         'close_by'       => now()->addMinutes(3)->timestamp
+         'close_by'       => now()->addMinutes(5)->timestamp
     ]);
 
     return response()->json([
