@@ -7,6 +7,7 @@ use App\Http\Controllers\HotelRoomsController;
 use App\Http\Controllers\HotelVender;
 use App\Http\Controllers\orderController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\VendorBankDetailsController;
 
 require base_path("/routes/api/destinaions.php");
 require base_path("/routes/api/subdestination.php");
@@ -18,18 +19,18 @@ require base_path("/routes/api/package_main_image.php");
 require base_path("/routes/api/topSlider.php");
 require base_path("/routes/api/packages.php");
 // user***************************************
- 
+
 require base_path("/routes/api/userlogin.php");
 require base_path("/routes/api/four_card.php");
 // make your own trip
 require base_path("/routes/api/make_my_trip.php");
 require base_path("/routes/api/gallery.php");
 Route::post('/send-mail', [EmailController::class, 'sendMail']);
-Route::post('/order-send-mail', [EmailController::class, 'orderEmail' ]);
-Route::post('/order', [orderController:: class, 'set']);
-Route::get('/order', [orderController :: class , 'get']);
-Route::get('/orderbyid/{id}', [orderController :: class , 'getByuserId']);
-Route::delete('/delete_order/{id}',[orderController :: class,'deleteOrderById']);
+Route::post('/order-send-mail', [EmailController::class, 'orderEmail']);
+Route::post('/order', [orderController::class, 'set']);
+Route::get('/order', [orderController::class, 'get']);
+Route::get('/orderbyid/{id}', [orderController::class, 'getByuserId']);
+Route::delete('/delete_order/{id}', [orderController::class, 'deleteOrderById']);
 
 
 // hotel vendor
@@ -41,7 +42,6 @@ Route::middleware('auth:api')->group(function () {
     Route::post('vendor', [HotelVender::class, 'store']);
     Route::put('vendor/{id}', [HotelVender::class, 'update']);
     Route::delete('vendor/{id}', [HotelVender::class, 'destroy']);
-    
 });
 Route::get('vendors', [HotelVender::class, 'index']);
 Route::get('vendor/alldata/{id}', [HotelVender::class, 'getAllVendorData']);
@@ -55,7 +55,7 @@ Route::post('/hotel/{id}/terms', [HotelVender::class, 'updateTermsConditions']);
 // Route::post('vendor/{id}', [HotelVender::class, 'test']);
 
 Route::post('vendor/{id}/update-name-email', [HotelVender::class, 'updatevendornameemail']);
- Route::get('get/vendor/{id}', [HotelVender::class, 'getVendorNameEmail']);
+Route::get('get/vendor/{id}', [HotelVender::class, 'getVendorNameEmail']);
 
 Route::get('/hotel-rooms', [HotelRoomsController::class, 'index']);    // on used 
 Route::get('/hotel-roomswithid/{vendorId}', [HotelRoomsController::class, 'getRoomsByVendor']);    // on used 
@@ -75,22 +75,29 @@ Route::prefix('bookings')->group(function () {
     Route::post('/', [HoltelBookingController::class, 'store']);   //currently not  used
     Route::get('/vendor/{vendorId}', [HoltelBookingController::class, 'bookingsByVendor']); //currently not  used
     Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']); //currently not  used
-    Route::post('/check-availability', [HoltelBookingController::class,'checkAvailability']);
+    Route::post('/check-availability', [HoltelBookingController::class, 'checkAvailability']);
     Route::put('/{id}', [HoltelBookingController::class, 'update']);  // not  used
     Route::patch('/{id}/cancel', [HoltelBookingController::class, 'cancel']);  //currently not  used
     Route::delete('/{id}', [HoltelBookingController::class, 'destroy']);  //currently not  used
-    
+
     // routes/api.php
 
-    Route::get('/nortification/roomno/{vendorId}', [HoltelBookingController::class, 'getnotification']); 
-        Route::post('/addroomno/{bookingId}', [HoltelBookingController::class, 'addRoomno']); 
+    Route::get('/nortification/roomno/{vendorId}', [HoltelBookingController::class, 'getnotification']);
+    Route::post('/addroomno/{bookingId}', [HoltelBookingController::class, 'addRoomno']);
     Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']); //currently not  used
-   Route::get('/wholebookingdata/{id}',[HoltelBookingController::class,'getBookingStats']);
-   Route::get('/recentlybooking/{id}',[HoltelBookingController::class,'getBookingDetails']);
-   
-});   
-Route::get('/create-qr', [HoltelBookingController::class, 'createQR']);
+    Route::get('/wholebookingdata/{id}', [HoltelBookingController::class, 'getBookingStats']);
+    Route::get('/recentlybooking/{id}', [HoltelBookingController::class, 'getBookingDetails']);
+});
+Route::post('/create-qr', [HoltelBookingController::class, 'createQR']);
 Route::get('/check/${qrId}', [HoltelBookingController::class, 'checkQRStatus']);
 
 
 Route::get('/users/{id}', [UserController::class, 'show']);
+
+
+
+Route::get('/vendors', [VendorBankDetailsController::class, 'index']);
+Route::get('/vendors/{id}', [VendorBankDetailsController::class, 'show']);
+Route::post('/vendors', [VendorBankDetailsController::class, 'store']);
+Route::post('/vendors/update/{id}', [VendorBankDetailsController::class, 'update']);
+// Route::delete('/vendors/{id}', [VendorBankDetailsController::class, 'destroy']);

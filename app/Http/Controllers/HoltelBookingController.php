@@ -526,14 +526,62 @@ public function getNotification($vendorId)
 
 
 
-    public function createQR()
+//     public function createQR()
+// {
+//     $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+
+//     // Create Order
+//     $order = $api->order->create([
+//         'receipt'         => 'rcptid_11',
+//         'amount'          => 50000, // paise (500 INR)
+//         'currency'        => 'INR',
+//         'payment_capture' => 1
+//     ]);
+
+//     // Create QR Code
+//     $qrCode = $api->qrCode->create([
+//         'type'           => 'upi_qr',
+//         'name'           => 'Test QR',
+//         'usage'          => 'single_use',
+//         'fixed_amount'   => true,
+//         'payment_amount' => 50000,
+//         'description'    => 'Payment via UPI QR',
+//         'close_by'       => now()->addHour()->timestamp,
+//         'notes'          => ['purpose' => 'Testing UPI QR'],
+//          'close_by'       => now()->addMinutes(5)->timestamp
+//     ]);
+
+//     return response()->json([
+//         'order'   => $order->toArray(),
+//         'qr_code' => $qrCode->toArray(),
+//         'qr_id'    => $qrCode['id'],
+//     ]);
+// }
+
+
+// public function checkQRStatus($qrId)
+// {
+//     $api = new  \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+//     $qr = $api->qrCode->fetch($qrId);
+
+//     return response()->json([
+//         'id'       => $qr['id'],
+//         'status'   => $qr['status'],    // active / closed
+//         'payments' => $qr['payments']   // 0 = not paid, >0 = payment made
+//     ]);
+// }
+
+public function createQR(Request $request)
 {
+    $amount = $request->input('amount'); // amount in rupees
+    $amountPaise = $amount * 100; // Razorpay uses paise
+
     $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
 
     // Create Order
     $order = $api->order->create([
-        'receipt'         => 'rcptid_11',
-        'amount'          => 50000, // paise (500 INR)
+        'receipt'         => 'rcptid_'.time(),
+        'amount'          => $amountPaise,
         'currency'        => 'INR',
         'payment_capture' => 1
     ]);
@@ -541,23 +589,21 @@ public function getNotification($vendorId)
     // Create QR Code
     $qrCode = $api->qrCode->create([
         'type'           => 'upi_qr',
-        'name'           => 'Test QR',
+        'name'           => 'Payment QR',
         'usage'          => 'single_use',
         'fixed_amount'   => true,
-        'payment_amount' => 50000,
+        'payment_amount' => $amountPaise,
         'description'    => 'Payment via UPI QR',
-        'close_by'       => now()->addHour()->timestamp,
-        'notes'          => ['purpose' => 'Testing UPI QR'],
-         'close_by'       => now()->addMinutes(5)->timestamp
+        'close_by'       => now()->addMinutes(5)->timestamp,
+        'notes'          => ['purpose' => 'Dynamic Payment'],
     ]);
 
     return response()->json([
         'order'   => $order->toArray(),
         'qr_code' => $qrCode->toArray(),
-        'qr_id'    => $qrCode['id'],
+        'qr_id'   => $qrCode['id'],
     ]);
 }
-
 
 public function checkQRStatus($qrId)
 {
