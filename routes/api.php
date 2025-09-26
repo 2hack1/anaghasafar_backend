@@ -44,6 +44,7 @@ Route::middleware('auth:api')->group(function () {
     Route::delete('vendor/{id}', [HotelVender::class, 'destroy']);
 });
 Route::get('vendors', [HotelVender::class, 'index']);
+Route::get('vendors/hotel/city', [HotelVender::class, 'fullmemories']);
 Route::get('vendor/alldata/{id}', [HotelVender::class, 'getAllVendorData']);
 
 Route::post('/hotel/{id}/cancellation', [HotelVender::class, 'updateCancellationPolicy']);

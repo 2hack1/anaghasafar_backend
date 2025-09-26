@@ -146,7 +146,7 @@ class HotelVender extends Controller
     {
         return hotelModel::with('user')->get();
     }
- 
+      
     // ✅ Get Specific Vendor
     public function show($id)
     {
@@ -181,7 +181,12 @@ class HotelVender extends Controller
         return response()->json(['message' => 'Deleted successfully']);
     }
 
-
+     public function fullmemories()
+    {
+        //  agian check
+        return hotelModel::with('user')->get();
+    } 
+ 
     public function updatevendornameemail(Request $request, $id)
     {
         try {
