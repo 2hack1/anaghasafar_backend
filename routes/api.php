@@ -92,11 +92,15 @@ Route::prefix('bookings')->group(function () {
 Route::post('/create-qr', [HoltelBookingController::class, 'createQR']);
 Route::get('/check/${qrId}', [HoltelBookingController::class, 'checkQRStatus']);
 
+// admin destionation deskboard hotel data **************************************
+Route::get('/get/hoteldesk/admin', [HoltelBookingController::class, 'getBookingStatsforAdmin']);
+Route::get('/hotels', [HoltelBookingController::class, 'getHotelData']);
+Route::get('/paid/booking', [HoltelBookingController::class, 'getpaidbooking']);
+Route::get('/unpaid/booking', [HoltelBookingController::class, 'getunpaiddbooking']);
+
+
 
 Route::get('/users/{id}', [UserController::class, 'show']);
-
-
-
 Route::get('/vendors', [VendorBankDetailsController::class, 'index']);
 Route::get('/vendors/{id}', [VendorBankDetailsController::class, 'show']);
 Route::post('/vendors', [VendorBankDetailsController::class, 'store']);

@@ -619,4 +619,72 @@ public function checkQRStatus($qrId)
 }
 
 
+
+
+public function getBookingStatsforAdmin()
+{
+    // Total number of unique hotels that have bookings
+
+    $totalHotels=hotelModel::distinct('hotel_vendor_id')->count('hotel_vendor_id');
+    // Total number of paid bookings
+    $paidBookings = HoltelBookingModel::where('payment_status', 'paid')->count();
+    // Total paid revenue (sum of total_amount where payment_status = paid)
+    $totalRevenue = HoltelBookingModel::where('payment_status', 'paid')->sum('total_amount');
+
+    // Total bookings (paid + unpaid)
+    $totalBookings = HoltelBookingModel::count();
+
+    // ✅ Return as JSON (or use in your dashboard)
+    return response()->json([
+        'total_hotels' => $totalHotels,
+        'paid_bookings' => $paidBookings,
+        'total_revenue' => $totalRevenue,
+        'total_bookings' => $totalBookings,
+      
+    ]);
+
+
+}
+
+
+public function gethoteldata(){
+  $hotels = hotelModel::all();
+
+    // If you have a lot of data, you can use pagination instead:
+    // $hotels = hotelModel::paginate(10);
+
+    // ✅ Return JSON response
+    return response()->json([
+        'status' => 'success',
+        'total_hotels' => $hotels->count(),
+        'data' => $hotels
+    ], 200);
+    
+}
+
+
+public function getpaidbooking(){
+    $bookings = HoltelBookingModel::where('payment_status', 'paid')
+        ->with(['user', 'hotelVendor', 'hotelRoom'])
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'paid_bookings' => $bookings,
+        'count' => $bookings->count()
+    ], 200);
+}
+
+public function getunpaiddbooking(){
+    $bookings = HoltelBookingModel::where('payment_status', '!=', 'paid')
+        ->with(['user', 'hotelVendor', 'hotelRoom'])
+        ->get();
+
+    return response()->json([
+        'success' => true,
+        'unpaid_bookings' => $bookings,
+        'count' => $bookings->count()
+    ], 200);
+}
+
 }

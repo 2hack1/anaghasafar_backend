@@ -144,7 +144,7 @@ class HotelVender extends Controller
 
     public function index()
     {
-        return hotelModel::with('user')->get();
+        return hotelModel::with('user')->get(); 
     }
       
     // ✅ Get Specific Vendor
