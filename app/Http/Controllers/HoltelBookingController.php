@@ -146,8 +146,9 @@ class HoltelBookingController extends Controller
             'status' => 'string',
             'special_requests' => 'nullable|string',
             'rooms_available'   => 'integer|min:0',
-            'room_no' => 'nullable|array',
-            'room_no.*' => 'string',
+            // 'room_no' => 'nullable|array',
+            // 'room_no.*' => 'string',
+            'room_no' => 'nullable|string'
         ]);
 
         if ($validator->fails()) {

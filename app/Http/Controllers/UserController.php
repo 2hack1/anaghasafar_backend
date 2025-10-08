@@ -13,10 +13,51 @@ use Illuminate\Validation\ValidationException;
 class UserController extends Controller
 {
     // ✅ Create a new user
+    //  public function register(Request $request)
+    //     {
+    //         return $this->store($request); // reuse store()
+    //     }
     public function register(Request $request)
     {
-        return $this->store($request); // reuse store()
+        try {
+            $validator = Validator::make($request->all(), [
+                'name'     => 'required',
+                'email'    => 'required|email|unique:users',
+                'password' => 'required|min:6|confirmed',
+                'role'    => 'required',
+                'user_mob_no1'=> 'nullable|max:15',
+                'user_mob_no2'=> 'nullable|max:15',
+            ]);
+
+            if ($validator->fails()) {
+                return response()->json($validator->errors(), 422);
+            }
+            // ✅ Save to DB
+            $user = User::create([
+                'name'     => $request->name,
+                'email'    => $request->email,
+                'password' => Hash::make($request->password),
+                'role'       => $request->role,
+                'user_mob_no1'      => $request->user_mob_no1,
+                'user_mob_no2'            => $request->user_mob_no2,
+            ]);
+
+            $token = $user->createToken('auth_token')->plainTextToken;
+
+            return response()->json([
+                'message'      => 'Vendor registered successfully',
+                'access_token' => $token,
+                'token_type'   => 'Bearer',
+                'user'       => $user
+            ], 201);
+        } catch (Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
     }
+
+
+
+
     public function store(Request $request)
     {
         try {
@@ -41,6 +82,9 @@ class UserController extends Controller
             dd($e);
         }
     }
+
+
+
 
 
     public function show($id)
@@ -225,7 +269,7 @@ class UserController extends Controller
         $user->password = Hash::make($request->new_password);
         $user->save();
         $sendEmailController = new EmailController();
-        $sendEmailController->updatedPass($request->email,$request->new_password);
+        $sendEmailController->updatedPass($request->email, $request->new_password);
 
         return response()->json([
             'status' => 'success',

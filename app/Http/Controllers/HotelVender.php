@@ -183,7 +183,7 @@ class HotelVender extends Controller
 
      public function fullmemories()
     {
-        //  agian check
+        // agian check
         return hotelModel::with('user')->get();
     } 
  
