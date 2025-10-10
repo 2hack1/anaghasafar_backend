@@ -48,6 +48,10 @@ class OrderModel extends Model
         'adult',
         'children',
         'infant',
+        'transaction_id',
+        'payment_status',
+        'payment_method',
+        'total_amount',
     ];
 
     /**

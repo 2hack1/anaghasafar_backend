@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\PackageModel;
+use App\Models\Sub_DestinationModel;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -19,6 +20,24 @@ class PackagesController extends Controller
             ->get();
 
         return response()->json($packages);
+    }
+
+    public function getpackagedatawithsudestinationdatabypackageid($packageid)
+    {
+        $package = PackageModel::with('images')
+            ->where('package_id', $packageid)
+            ->first();
+
+        if (!$package) {
+            return response()->json(['error' => 'Package not found'], 404);
+        }
+
+        $subDestination = Sub_DestinationModel::where('sub_destination_id', $package->sub_destination_id)->first();
+
+        return response()->json([
+            'package' => $package,
+            'sub_destination' => $subDestination
+        ]);
     }
 
     public function  getPackageHomeLimit($sub_des_id)

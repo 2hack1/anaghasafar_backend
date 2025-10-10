@@ -19,14 +19,15 @@ require base_path("/routes/api/package_main_image.php");
 require base_path("/routes/api/topSlider.php");
 require base_path("/routes/api/packages.php");
 // user***************************************
-
 require base_path("/routes/api/userlogin.php");
 require base_path("/routes/api/four_card.php");
-// make your own trip
 require base_path("/routes/api/make_my_trip.php");
 require base_path("/routes/api/gallery.php");
+
+
 Route::post('/send-mail', [EmailController::class, 'sendMail']);
 Route::post('/order-send-mail', [EmailController::class, 'orderEmail']);
+Route::post('/order/with/payment/details', [orderController::class,'withPaymentset']);
 Route::post('/order', [orderController::class, 'set']);
 Route::get('/order', [orderController::class, 'get']);
 Route::get('/orderbyid/{id}', [orderController::class, 'getByuserId']);
@@ -90,13 +91,15 @@ Route::prefix('bookings')->group(function () {
     Route::get('/recentlybooking/{id}', [HoltelBookingController::class, 'getBookingDetails']);
 });
 Route::post('/create-qr', [HoltelBookingController::class, 'createQR']);
-Route::get('/check/${qrId}', [HoltelBookingController::class, 'checkQRStatus']);
+Route::post('/expire', [HoltelBookingController::class, 'expireQR']);
+
+Route::get('/check/{qrId}', [HoltelBookingController::class, 'checkQRStatus']);
 
 // admin destionation deskboard hotel data **************************************
 Route::get('/get/hoteldesk/admin', [HoltelBookingController::class, 'getBookingStatsforAdmin']);
 Route::get('/hotels', [HoltelBookingController::class, 'getHotelData']);
-Route::get('/paid/booking', [HoltelBookingController::class, 'getpaidbooking']);
-Route::get('/unpaid/booking', [HoltelBookingController::class, 'getunpaiddbooking']);
+Route::get('/paid/booking', [HoltelBookingController::class, 'getbookingforDesAdmin']);
+Route::get('/unpaid/booking', [HoltelBookingController::class, 'gethoteldatabydeskboard']);
 
 
 

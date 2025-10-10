@@ -19,3 +19,4 @@ Route::post('/filter/homepage', [PackagesController::class, 'check']);  // curre
 Route::get('/top/filter', [PackagesController::class, 'searchPackages']);
 Route::get('/pac/places', [PackagesController::class, 'getAllPlaces']);
 Route::post('/p/filter/{packageId}', [PackagesController::class, 'dssfilterPackages']);
+Route::get('/view/getfor/payment/{packageid}', [PackagesController::class, 'getpackagedatawithsudestinationdatabypackageid']);

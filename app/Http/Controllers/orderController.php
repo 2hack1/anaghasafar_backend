@@ -50,6 +50,47 @@ class orderController extends Controller
         }
     }
 
+public function withPaymentset(Request $request)
+    {
+
+        try {
+            $Validate = $request->validate([
+                
+                'userId'      =>    'required',
+                'destinationId' =>  'required',
+                'subdesId'    =>    'required',
+                'packagesId'  =>    'required',
+                'monthId'     =>    'required',
+                'dateId'      =>    'required',
+                'adult'       =>    'required',
+                'children'   =>    'required',
+                'infant'     =>    'required',
+                'transaction_id' =>    'required',
+                'payment_status' =>    'required',
+                'payment_method' =>    'required',
+                'total_amount' =>    'required'
+            ]);
+
+            $orderder =  OrderModel::create([
+                'userId'    => $Validate['userId'],
+                'destinationId' => $Validate['destinationId'],
+                'subdesId'    => $Validate['subdesId'],
+                'packagesId'  => $Validate['packagesId'],
+                'monthId'    => $Validate['monthId'],
+                'dateId'     => $Validate['dateId'],
+                'adult'  => $Validate['adult'],
+                'children' => $Validate['children'],
+                'infant' => $Validate['infant'],
+                'transaction_id' => $Validate['transaction_id'],
+                'payment_status' => $Validate['payment_status'],
+                'payment_method' => $Validate['payment_method'],
+                'total_amount' => $Validate['total_amount'],
+            ]);
+            return response()->json($orderder, 200);
+        } catch (Exception $err) {
+            dd($err);
+        }
+    }
 
 
 
@@ -149,47 +190,6 @@ class orderController extends Controller
         }
     }
 
-    // public function get()
-    // {
-    //     try {
-    //         $orders = OrderModel::all();
-    //         $results = [];
-
-
-    //         foreach ($orders as $order) {
-    //             // Get user
-    //             $user = User::find($order->userId);
-    //             if (!$user) continue;
-                     
-    //             // Get subdestination matching order
-    //             $subDestination = Sub_DestinationModel::where('sub_destination_id', $order->subdesId)
-    //                 ->where('destination_id', $order->destinationId)
-    //                 ->first();
-
-    //             if (!$subDestination) continue;
-
-    //             // Get package for this subdestination
-    //             $package = PackageModel::where('package_id', $order->packagesId)
-    //                 ->where('sub_destination_id', $subDestination->sub_destination_id)
-    //                 ->first();
-
-    //             if (!$package) continue;
-
-    //             $results[] = [
-    //                 'order_id' => $order->id,
-    //                 'created'  => $order->created_at,
-    //                 'place'    => $package->place_name,
-    //                 'name'     => $user->name,
-    //                 'email'    => $user->email,
-    //             ];
-    //         }
-
-    //         return response()->json($results, 200);
-    //     } catch (\Exception $e) {
-    //         return response()->json(['error' => $e->getMessage()], 500);
-    //     }
-    // }
-
     public function deleteOrderById($orderId)
     {
         $order = OrderModel::find($orderId);
@@ -201,4 +201,8 @@ class orderController extends Controller
             return response()->json(['message' => 'Order not found.'], 404);
         }
     }
+
+
+   
+
 }
