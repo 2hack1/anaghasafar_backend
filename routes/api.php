@@ -18,12 +18,12 @@ require base_path("/routes/api/dates.php");
 require base_path("/routes/api/package_main_image.php");
 require base_path("/routes/api/topSlider.php");
 require base_path("/routes/api/packages.php");
-// user***************************************
 require base_path("/routes/api/userlogin.php");
 require base_path("/routes/api/four_card.php");
 require base_path("/routes/api/make_my_trip.php");
 require base_path("/routes/api/gallery.php");
 
+// user***************************************
 
 Route::post('/send-mail', [EmailController::class, 'sendMail']);
 Route::post('/order-send-mail', [EmailController::class, 'orderEmail']);
@@ -32,6 +32,7 @@ Route::post('/order', [orderController::class, 'set']);
 Route::get('/order', [orderController::class, 'get']);
 Route::get('/orderbyid/{id}', [orderController::class, 'getByuserId']);
 Route::delete('/delete_order/{id}', [orderController::class, 'deleteOrderById']);
+Route::get('/footer/packages', [orderController::class, 'footerUsedPackage']);
 
 
 // hotel vendor
@@ -81,9 +82,7 @@ Route::prefix('bookings')->group(function () {
     Route::put('/{id}', [HoltelBookingController::class, 'update']);  // not  used
     Route::patch('/{id}/cancel', [HoltelBookingController::class, 'cancel']);  //currently not  used
     Route::delete('/{id}', [HoltelBookingController::class, 'destroy']);  //currently not  used
-
     // routes/api.php
-
     Route::get('/nortification/roomno/{vendorId}', [HoltelBookingController::class, 'getnotification']);
     Route::post('/addroomno/{bookingId}', [HoltelBookingController::class, 'addRoomno']);
     Route::get('/user/{userId}', [HoltelBookingController::class, 'bookingsByUser']); //currently not  used

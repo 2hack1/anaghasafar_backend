@@ -98,6 +98,33 @@ public function withPaymentset(Request $request)
 
 
     //   } 
+      public function footerUsedPackage(){
+
+        $ordersCount = OrderModel::count();
+
+        if ($ordersCount > 19) {
+            // Get top 7 most used package_ids from orders table
+            $packageIds = OrderModel::select('packagesId')
+                ->groupBy('packagesId')
+                ->orderByRaw('COUNT(packagesId) DESC')
+                ->limit(7)
+                ->pluck('packagesId');
+
+        
+            $packages = PackageModel::whereIn('package_id', $packageIds)
+            ->orderByRaw("FIELD(package_id, " . implode(',', $packageIds->toArray()) . ")")
+            ->get(['package_id', 'place_name']);
+        } else {
+            // Get last 7 packages from package model
+            $packages = PackageModel::orderBy('created_at', 'desc')->limit(7)->get(['package_id', 'place_name']); 
+        }
+
+        return response()->json($packages, 200);
+        $package = PackageModel::where('package_id', $orders->packagesId)
+            ->select('package_id', 'place_name')
+            ->select('package_id', 'place_name')
+            ->first();
+      }
 
     public function getByuserId($orderId)
     {

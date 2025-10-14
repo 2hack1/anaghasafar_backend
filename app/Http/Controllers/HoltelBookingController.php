@@ -10,8 +10,14 @@ use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\EmailController;
 use App\Models\hotelModel;
 use App\Models\User;
-use Illuminate\Support\Carbon;
+// use Illuminate\Support\Carbon;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
+
+
+
+use Razorpay\Api\Api;
+
 class HoltelBookingController extends Controller
 {
 
@@ -408,47 +414,47 @@ class HoltelBookingController extends Controller
     //     ], 200);
     // }
 
-public function getNotification($vendorId)
-{
-    $bookings = HoltelBookingModel::with(['user', 'hotelVendor', 'hotelRoom'])
-        ->where('hotel_vendor_id', $vendorId) // ✅ filter by vendor
-        ->where(function ($q) {               // ✅ group room_no conditions
-            $q->whereNull('room_no')
-              ->orWhere('room_no', '[]');
-        })
-        ->get();
+    public function getNotification($vendorId)
+    {
+        $bookings = HoltelBookingModel::with(['user', 'hotelVendor', 'hotelRoom'])
+            ->where('hotel_vendor_id', $vendorId) // ✅ filter by vendor
+            ->where(function ($q) {               // ✅ group room_no conditions
+                $q->whereNull('room_no')
+                    ->orWhere('room_no', '[]');
+            })
+            ->get();
 
-    $notifications = [];
+        $notifications = [];
 
-    foreach ($bookings as $booking) {
-        $createdAt = $booking->created_at ? $booking->created_at->format('d M Y, H:i') : 'N/A';
-        $checkIn   = $booking->check_in_date ? date('d M Y', strtotime($booking->check_in_date)) : 'N/A';
-        $checkOut  = $booking->check_out_date ? date('d M Y', strtotime($booking->check_out_date)) : 'N/A';
-        $hotelName = $booking->hotelVendor->hotelname ?? 'N/A';
+        foreach ($bookings as $booking) {
+            $createdAt = $booking->created_at ? $booking->created_at->format('d M Y, H:i') : 'N/A';
+            $checkIn   = $booking->check_in_date ? date('d M Y', strtotime($booking->check_in_date)) : 'N/A';
+            $checkOut  = $booking->check_out_date ? date('d M Y', strtotime($booking->check_out_date)) : 'N/A';
+            $hotelName = $booking->hotelVendor->hotelname ?? 'N/A';
 
-        $notifications[] = [
-            'heading'    => 'Missing Room Number',
-            'sub'        => "Booking ID: {$booking->id} - Action Required",
-            'details'    => "A new booking has been created on {$createdAt} by "
-                            .($booking->user->name ?? 'Guest')." "
-                            .($booking->user->email ?? '')." for hotel '{$hotelName}' with room type '"
-                            .($booking->roomType ?? 'N/A')."'.
+            $notifications[] = [
+                'heading'    => 'Missing Room Number',
+                'sub'        => "Booking ID: {$booking->id} - Action Required",
+                'details'    => "A new booking has been created on {$createdAt} by "
+                    . ($booking->user->name ?? 'Guest') . " "
+                    . ($booking->user->email ?? '') . " for hotel '{$hotelName}' with room type '"
+                    . ($booking->roomType ?? 'N/A') . "'.
                             Check-in: {$checkIn}, Check-out: {$checkOut}.
                             No room number has been assigned yet. Please update the room number.",
-            'message'    => 'Anagha Safar & Team',
-            'user_name'  => $booking->user->name ?? $booking->user_name,
-            'booking_id' => $booking->id,
-            'user_email' => $booking->user->email ?? $booking->email,
-            'room_type'  => $booking->roomType ?? ($booking->hotelRoom->room_type ?? 'N/A'),
-        ];
-    }
+                'message'    => 'Anagha Safar & Team',
+                'user_name'  => $booking->user->name ?? $booking->user_name,
+                'booking_id' => $booking->id,
+                'user_email' => $booking->user->email ?? $booking->email,
+                'room_type'  => $booking->roomType ?? ($booking->hotelRoom->room_type ?? 'N/A'),
+            ];
+        }
 
-    return response()->json([
-        'success'       => true,
-        'notifications' => $notifications,
-        'count'         => count($notifications)
-    ], 200);
-}
+        return response()->json([
+            'success'       => true,
+            'notifications' => $notifications,
+            'count'         => count($notifications)
+        ], 200);
+    }
 
 
     public function getBookingStats($hotel_vendor_id)
@@ -475,21 +481,21 @@ public function getNotification($vendorId)
         $totalRooms = HotelRoomsModel::where('hotel_vendor_id', $hotel_vendor_id)->sum('numRooms');
 
 
-        $vendoreBynorooms=hotelModel::where('hotel_vendor_id',$hotel_vendor_id)->get('totalrooms');
+        $vendoreBynorooms = hotelModel::where('hotel_vendor_id', $hotel_vendor_id)->get('totalrooms');
 
         // ✅ Subtract only rooms with successful payment
         $bookedRooms = HoltelBookingModel::where('hotel_vendor_id', $hotel_vendor_id)
             ->whereIn('payment_status', ['Success', 'Completed', 'Paid']) // only paid bookings
             ->sum('rooms_booked');
-        
-            if(!$vendoreBynorooms){
-                 $take= $totalRooms;  
-            }else{
-                 $take=(int)$vendoreBynorooms[0]->totalrooms; 
-            }
+
+        if (!$vendoreBynorooms) {
+            $take = $totalRooms;
+        } else {
+            $take = (int)$vendoreBynorooms[0]->totalrooms;
+        }
         $availableRooms = max($take - $bookedRooms, 0);
 
-    
+
 
         return response()->json([
             'success'           => true,
@@ -499,13 +505,13 @@ public function getNotification($vendorId)
             'confirmed'         => $confirmedBookings,
             'available_rooms'   => $availableRooms,
             'total_rooms'       => $take,
-             'byhotelroom'     =>$vendoreBynorooms       
+            'byhotelroom'     => $vendoreBynorooms
         ], 200);
     }
 
 
 
- 
+
 
 
     public function getBookingDetails($hotel_vendor_id)
@@ -536,115 +542,115 @@ public function getNotification($vendorId)
 
 
 
-//     public function createQR()
-// {
-//     $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+    //     public function createQR()
+    // {
+    //     $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
 
-//     // Create Order
-//     $order = $api->order->create([
-//         'receipt'         => 'rcptid_11',
-//         'amount'          => 50000, // paise (500 INR)
-//         'currency'        => 'INR',
-//         'payment_capture' => 1
-//     ]);
+    //     // Create Order
+    //     $order = $api->order->create([
+    //         'receipt'         => 'rcptid_11',
+    //         'amount'          => 50000, // paise (500 INR)
+    //         'currency'        => 'INR',
+    //         'payment_capture' => 1
+    //     ]);
 
-//     // Create QR Code
-//     $qrCode = $api->qrCode->create([
-//         'type'           => 'upi_qr',
-//         'name'           => 'Test QR',
-//         'usage'          => 'single_use',
-//         'fixed_amount'   => true,
-//         'payment_amount' => 50000,
-//         'description'    => 'Payment via UPI QR',
-//         'close_by'       => now()->addHour()->timestamp,
-//         'notes'          => ['purpose' => 'Testing UPI QR'],
-//          'close_by'       => now()->addMinutes(5)->timestamp
-//     ]);
+    //     // Create QR Code
+    //     $qrCode = $api->qrCode->create([
+    //         'type'           => 'upi_qr',
+    //         'name'           => 'Test QR',
+    //         'usage'          => 'single_use',
+    //         'fixed_amount'   => true,
+    //         'payment_amount' => 50000,
+    //         'description'    => 'Payment via UPI QR',
+    //         'close_by'       => now()->addHour()->timestamp,
+    //         'notes'          => ['purpose' => 'Testing UPI QR'],
+    //          'close_by'       => now()->addMinutes(5)->timestamp
+    //     ]);
 
-//     return response()->json([
-//         'order'   => $order->toArray(),
-//         'qr_code' => $qrCode->toArray(),
-//         'qr_id'    => $qrCode['id'],
-//     ]);
-// }
-
-
-// public function checkQRStatus($qrId)
-// {
-//     $api = new  \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-//     $qr = $api->qrCode->fetch($qrId);
-
-//     return response()->json([
-//         'id'       => $qr['id'],
-//         'status'   => $qr['status'],    // active / closed
-//         'payments' => $qr['payments']   // 0 = not paid, >0 = payment made
-//     ]);
-// }
-
-public function createQR(Request $request)
-{
-    $amount = $request->input('amount'); // amount in rupees
-    $amountPaise = $amount * 100; // Razorpay uses paise
-
-    $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-
-    // Create Order
-    $order = $api->order->create([
-        'receipt'         => 'rcptid_'.time(),
-        'amount'          => $amountPaise,
-        'currency'        => 'INR',
-        'payment_capture' => 1
-    ]);
-
-    // Create QR Code
-    $qrCode = $api->qrCode->create([
-        'type'           => 'upi_qr',
-        'name'           => 'Payment QR',
-        'usage'          => 'single_use',
-        'fixed_amount'   => true,
-        'payment_amount' => $amountPaise,
-        'description'    => 'Payment via UPI QR',
-        'close_by'       => now()->addMinutes(5)->timestamp,
-        'notes'          => ['purpose' => 'Dynamic Payment'],
-    ]);
-
-    return response()->json([
-        'order'   => $order->toArray(),
-        'qr_code' => $qrCode->toArray(),
-        'qr_id'   => $qrCode['id'],
-    ]);
-}
+    //     return response()->json([
+    //         'order'   => $order->toArray(),
+    //         'qr_code' => $qrCode->toArray(),
+    //         'qr_id'    => $qrCode['id'],
+    //     ]);
+    // }
 
 
+    // public function checkQRStatus($qrId)
+    // {
+    //     $api = new  \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+    //     $qr = $api->qrCode->fetch($qrId);
 
-public function expireQR(Request $request)
-{
-    $qrId = $request->input('qr_id');  // get QR ID from request
+    //     return response()->json([
+    //         'id'       => $qr['id'],
+    //         'status'   => $qr['status'],    // active / closed
+    //         'payments' => $qr['payments']   // 0 = not paid, >0 = payment made
+    //     ]);
+    // }
 
-    if (!$qrId) {
-        return response()->json([
-            'status' => false,
-            'message' => 'QR ID is required.'
-        ], 400);
-    }
+    public function createQR(Request $request)
+    {
+        $amount = $request->input('amount'); // amount in rupees
+        $amountPaise = $amount * 100; // Razorpay uses paise
 
-    try {
         $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-        $qrCode = $api->qrCode->fetch($qrId)->close();
 
-        return response()->json([
-            'status' => true,
-            'message' => 'QR Code expired successfully.',
-            'qr_code' => $qrCode->toArray()
+        // Create Order
+        $order = $api->order->create([
+            'receipt'         => 'rcptid_' . time(),
+            'amount'          => $amountPaise,
+            'currency'        => 'INR',
+            'payment_capture' => 1
         ]);
-    } catch (\Exception $e) {
+
+        // Create QR Code
+        $qrCode = $api->qrCode->create([
+            'type'           => 'upi_qr',
+            'name'           => 'Payment QR',
+            'usage'          => 'single_use',
+            'fixed_amount'   => true,
+            'payment_amount' => $amountPaise,
+            'description'    => 'Payment via UPI QR',
+            'close_by'       => now()->addMinutes(5)->timestamp,
+            'notes'          => ['purpose' => 'Dynamic Payment'],
+        ]);
+
         return response()->json([
-            'status' => false,
-            'message' => 'Failed to expire QR Code.',
-            'error' => $e->getMessage()
-        ], 500);
+            'order'   => $order->toArray(),
+            'qr_code' => $qrCode->toArray(),
+            'qr_id'   => $qrCode['id'],
+        ]);
     }
-}
+
+
+
+    public function expireQR(Request $request)
+    {
+        $qrId = $request->input('qr_id');  // get QR ID from request
+
+        if (!$qrId) {
+            return response()->json([
+                'status' => false,
+                'message' => 'QR ID is required.'
+            ], 400);
+        }
+
+        try {
+            $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+            $qrCode = $api->qrCode->fetch($qrId)->close();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'QR Code expired successfully.',
+                'qr_code' => $qrCode->toArray()
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'status' => false,
+                'message' => 'Failed to expire QR Code.',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
 
 
 
@@ -652,55 +658,110 @@ public function expireQR(Request $request)
 
 
 
-// public function checkQRStatus($qrId)
-// {
-//     $api = new  \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-//     $qr = $api->qrCode->fetch($qrId);
 
-//     return response()->json([
-//         'id'       => $qr['id'],
-//         'status'   => $qr['status'],    // active / closed
-//         'payments' => $qr['payments']   // 0 = not paid, >0 = payment made
-//     ]);
-// }
-// public function checkQRStatus($qrId)
-// {
-//     $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-//     $qr = $api->qrCode->fetch($qrId);
 
-//     $paymentsData = [];
+    // public function checkQRStatus($qrId)
+    // {
+    //     try {
+    //         $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
 
-//     // Check if any payments are made
-//     if (!empty($qr['payments']['items']) && count($qr['payments']['items']) > 0) {
-//         foreach ($qr['payments']['items'] as $payment) {
-//             $paymentsData[] = [
-//                 'transaction_id' => $payment['id'],    // Razorpay Payment ID
-//                 'amount'         => $payment['amount'], // in paise
-//                 'currency'       => $payment['currency'],
-//                 'status'         => $payment['status'],
-//                 'method'         => $payment['method'],
-//             ];
-//         }
-//     }
+    //         // Fetch QR details
+    //         $qr = $api->qrCode->fetch($qrId);
 
-//     return response()->json([
-//         'qr_id'      => $qr['id'],
-//         'status'     => $qr['status'],      // active / closed
-//         'payments'   => count($paymentsData), // number of payments made
-//         'payment_details' => $paymentsData   // array of payments with transaction ID & amount
-//     ]);
-// }
+    //         // Fetch all payments linked to this QR code
+    //         $payments = $api->payment->all(['qr_code_id' => $qrId]);
 
+    //         $paymentsData = [];
+
+    //         if (!empty($payments['items']) && count($payments['items']) > 0) {
+    //             foreach ($payments['items'] as $payment) {
+    //                 $paymentsData[] = [
+    //                     'transaction_id' => $payment['id'],
+    //                     'amount'         => $payment['amount'], // in paise
+    //                     'currency'       => $payment['currency'],
+    //                     'status'         => $payment['status'],
+    //                     'method'         => $payment['method'],
+    //                     'order_id'       => $payment['order_id'] ?? null,
+    //                     'notes'          => $payment['notes'] ?? [],
+    //                     'created_at'     => isset($payment['created_at'])
+    //                         ? \Carbon\Carbon::createFromTimestamp($payment['created_at'])->toDateTimeString()
+    //                         : null
+    //                 ];
+    //             }
+    //         }
+
+    //         return response()->json([
+    //             'qr_id'           => $qr['id'],
+    //             'status'          => $qr['status'],
+    //             'payments'        => count($paymentsData),
+    //             'payment_details' => $paymentsData
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'error'   => true,
+    //             'message' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
+
+    // public function checkQRStatus($qrId)
+    // {
+    //     try {
+    //         $api = new Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+
+    //         // Fetch QR code details
+    //         $qr = $api->qrCode->fetch($qrId);
+
+    //         // Fetch all payments linked to this QR code
+    //         $payments = $api->payment->all(['qr_code_id' => $qrId]);
+
+    //         $paymentsData = [];
+
+    //         if (!empty($payments['items']) && count($payments['items']) > 0) {
+    //             foreach ($payments['items'] as $payment) {
+    //                 $paymentsData[] = [
+    //                     'transaction_id' => $payment['id'],
+    //                     'amount'         => $payment['amount'], // in paise
+    //                     'currency'       => $payment['currency'],
+    //                     'status'         => $payment['status'], // created, captured, failed
+    //                     'method'         => $payment['method'], // upi, card, etc.
+    //                     'order_id'       => $payment['order_id'] ?? null,
+    //                     'vpa'            => $payment['vpa'] ?? null,
+    //                     'notes'          => $payment['notes'] ?? [],
+    //                     'created_at'     => isset($payment['created_at'])
+    //                         ? Carbon::createFromTimestamp($payment['created_at'])->toDateTimeString()
+    //                         : null,
+    //                 ];
+    //             }
+    //         }
+
+    //         return response()->json([
+    //             'success'         => true,
+    //             'qr_id'           => $qr['id'],
+    //             'qr_status'       => $qr['status'], // "active" or "closed"
+    //             'payments_count'  => count($paymentsData),
+    //             'payment_details' => $paymentsData
+    //         ]);
+    //     } catch (\Exception $e) {
+    //         return response()->json([
+    //             'success' => false,
+    //             'message' => $e->getMessage()
+    //         ], 500);
+    //     }
+    // }
 public function checkQRStatus($qrId)
 {
     try {
         $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-
-        // Fetch QR details
         $qr = $api->qrCode->fetch($qrId);
 
-        // Fetch all payments linked to this QR code
-        $payments = $api->payment->all(['qr_code_id' => $qrId]);
+        try {
+            // Try fetching linked payments
+            $payments = $api->payment->all(['qr_code_id' => $qrId]);
+        } catch (\Exception $e) {
+            // Handle case when Razorpay says "qr_code_id not required"
+            $payments = ['items' => []];
+        }
 
         $paymentsData = [];
 
@@ -708,12 +769,12 @@ public function checkQRStatus($qrId)
             foreach ($payments['items'] as $payment) {
                 $paymentsData[] = [
                     'transaction_id' => $payment['id'],
-                    'amount'         => $payment['amount'], // in paise
+                    'amount'         => $payment['amount'],
                     'currency'       => $payment['currency'],
                     'status'         => $payment['status'],
                     'method'         => $payment['method'],
                     'order_id'       => $payment['order_id'] ?? null,
-                    'notes'          => $payment['notes'] ?? [],
+                    'vpa'            => $payment['vpa'] ?? null,
                     'created_at'     => isset($payment['created_at'])
                         ? \Carbon\Carbon::createFromTimestamp($payment['created_at'])->toDateTimeString()
                         : null
@@ -722,178 +783,181 @@ public function checkQRStatus($qrId)
         }
 
         return response()->json([
+            'success'         => true,
             'qr_id'           => $qr['id'],
-            'status'          => $qr['status'],
-            'payments'        => count($paymentsData),
+            'qr_status'       => $qr['status'], // active or closed
+            'payments_count'  => count($paymentsData),
             'payment_details' => $paymentsData
         ]);
     } catch (\Exception $e) {
         return response()->json([
-            'error'   => true,
+            'success' => false,
             'message' => $e->getMessage()
         ], 500);
     }
 }
-//know  not working ************************************* 
-
-
-// public function checkQRStatusfake($qrId)
-//     {
-//         // Simulate QR status (active / closed) with higher chance of 'active'
-//         $status = (rand(1, 10) > 2) ? 'active' : 'closed';
-
-//         $paymentsData = [];
-//         // Random number of payments between 0 and 4
-//         $paymentsCount = rand(0, 4);
-
-//         $possibleStatuses = ['created', 'authorized', 'captured', 'failed', 'refunded'];
-//         $possibleMethods = ['upi', 'card', 'netbanking', 'wallet'];
-
-//         for ($i = 0; $i < $paymentsCount; $i++) {
-//             // Make amounts look realistic: between ₹100 and ₹5,000, stored in paise
-//             $amountInRupees = rand(100, 5000);
-//             $amountInPaise = $amountInRupees * 100;
-
-//             $paymentsData[] = [
-//                 'transaction_id' => 'pay_' . Str::random(16),
-//                 'amount'         => $amountInPaise,
-//                 'currency'       => 'INR',
-//                 'status'         => $possibleStatuses[array_rand($possibleStatuses)],
-//                 'method'         => $possibleMethods[array_rand($possibleMethods)],
-//                 // optional extra fields to make debugging easier:
-//                 'order_id'       => 'order_' . Str::random(10),
-//                 'notes'          => [
-//                     'tour' => 'mock-tour-' . rand(1, 20),
-//                     'source' => 'mock-test'
-//                 ],
-//                 'created_at'     => Carbon::now()->subMinutes(rand(0, 180))->toDateTimeString()
-//             ];
-//         }
-
-//         // Construct fake QR payload (structure similar to real Razorpay qr fetch)
-//         $qr = [
-//             'id' => $qrId,
-//             'status' => $status,
-//             'payments' => [
-//                 'count' => $paymentsCount,
-//                 'items' => $paymentsData
-//             ],
-//             // meta fields you might expect
-//             'metadata' => [
-//                 'merchant' => 'mock_merchant',
-//                 'created_at' => Carbon::now()->subHours(rand(1, 72))->toDateTimeString(),
-//             ]
-//         ];
-
-//         return response()->json([
-//             'qr_id' => $qr['id'],
-//             'status' => $qr['status'],
-//             'payments' => $qr['payments']['count'],
-//             'payment_details' => $qr['payments']['items']
-//         ]);
-//     }
 
 
 
 
-//     public function getBookingStatsforAdmin()
-// {
-//     // Total number of unique hotels that have bookings
-
-//     $totalHotels=hotelModel::distinct('hotel_vendor_id')->count('hotel_vendor_id');
-//     // Total number of paid bookings
-//     $paidBookings = HoltelBookingModel::where('payment_status', 'paid')->count();
-//     // Total paid revenue (sum of total_amount where payment_status = paid)
-//     $totalRevenue = HoltelBookingModel::where('payment_status', 'paid')->sum('total_amount');
-
-//     // Total bookings (paid + unpaid)
-//     $totalBookings = HoltelBookingModel::count();
-
-//     // ✅ Return as JSON (or use in your dashboard)
-//     return response()->json([
-//         'total_hotels' => $totalHotels,
-//         'paid_bookings' => $paidBookings,
-//         'total_revenue' => $totalRevenue,
-//         'total_bookings' => $totalBookings,
-      
-//     ]);
+    //know  not working ************************************* 
 
 
-// }
+    // public function checkQRStatusfake($qrId)
+    //     {
+    //         // Simulate QR status (active / closed) with higher chance of 'active'
+    //         $status = (rand(1, 10) > 2) ? 'active' : 'closed';
 
+    //         $paymentsData = [];
+    //         // Random number of payments between 0 and 4
+    //         $paymentsCount = rand(0, 4);
 
-public function gethoteldata(){
-  $hotels = hotelModel::all();
+    //         $possibleStatuses = ['created', 'authorized', 'captured', 'failed', 'refunded'];
+    //         $possibleMethods = ['upi', 'card', 'netbanking', 'wallet'];
 
-    // If you have a lot of data, you can use pagination instead:
-    // $hotels = hotelModel::paginate(10);
+    //         for ($i = 0; $i < $paymentsCount; $i++) {
+    //             // Make amounts look realistic: between ₹100 and ₹5,000, stored in paise
+    //             $amountInRupees = rand(100, 5000);
+    //             $amountInPaise = $amountInRupees * 100;
 
-    // ✅ Return JSON response
-    return response()->json([
-        'status' => 'success',
-        'total_hotels' => $hotels->count(),
-        'data' => $hotels
-    ], 200);
-    
-}
-public function getbookingforDesAdmin()
-{
-    // Get stats for all vendors (without using vendor id)
-    $totalBookings = HoltelBookingModel::count();
+    //             $paymentsData[] = [
+    //                 'transaction_id' => 'pay_' . Str::random(16),
+    //                 'amount'         => $amountInPaise,
+    //                 'currency'       => 'INR',
+    //                 'status'         => $possibleStatuses[array_rand($possibleStatuses)],
+    //                 'method'         => $possibleMethods[array_rand($possibleMethods)],
+    //                 // optional extra fields to make debugging easier:
+    //                 'order_id'       => 'order_' . Str::random(10),
+    //                 'notes'          => [
+    //                     'tour' => 'mock-tour-' . rand(1, 20),
+    //                     'source' => 'mock-test'
+    //                 ],
+    //                 'created_at'     => Carbon::now()->subMinutes(rand(0, 180))->toDateTimeString()
+    //             ];
+    //         }
 
-    $totalRevenue = HoltelBookingModel::whereIn('status', ['Confirmed', 'Completed'])
-        ->sum('total_amount');
+    //         // Construct fake QR payload (structure similar to real Razorpay qr fetch)
+    //         $qr = [
+    //             'id' => $qrId,
+    //             'status' => $status,
+    //             'payments' => [
+    //                 'count' => $paymentsCount,
+    //                 'items' => $paymentsData
+    //             ],
+    //             // meta fields you might expect
+    //             'metadata' => [
+    //                 'merchant' => 'mock_merchant',
+    //                 'created_at' => Carbon::now()->subHours(rand(1, 72))->toDateTimeString(),
+    //             ]
+    //         ];
 
-    $pendingPayments = HoltelBookingModel::where('payment_status', 'Pending')
-        ->sum('total_amount');
-
-    $confirmedBookings = HoltelBookingModel::where('status', 'Confirmed')
-        ->count();
-
-    // Get number of unique hotels with bookings
-    $totalHotels = hotelModel::distinct('hotel_vendor_id')->count('hotel_vendor_id');
-
-    return response()->json([
-        'success'           => true,
-        'total_bookings'    => $totalBookings,
-        'total_revenue'     => $totalRevenue,
-        'pending_payments'  => $pendingPayments,
-        'confirmed'         => $confirmedBookings,
-        'total_hotels'      => $totalHotels
-    ], 200);
-}
-
-
-// public function getpaidbooking(){
-//     $bookings = HoltelBookingModel::where('payment_status', 'paid')
-//         ->with(['user', 'hotelVendor', 'hotelRoom'])
-//         ->get();
-
-//     return response()->json([
-//         'success' => true,
-//         'paid_bookings' => $bookings,
-//         'count' => $bookings->count()
-//     ], 200);
-// }
-
-// public function getunpaiddbooking(){
-//     $bookings = HoltelBookingModel::where('payment_status', '!=', 'paid')
-//         ->with(['user', 'hotelVendor', 'hotelRoom'])
-//         ->get();
-
-//     return response()->json([
-//         'success' => true,
-//         'unpaid_bookings' => $bookings,
-//         'count' => $bookings->count()
-//     ], 200);
-// }
-
-
-public function gethoteldatabydeskboard(){
-    $bookings = HoltelBookingModel::with(['user', 'hotelRoom'])->get();
-    return response()->json($bookings);
-}
+    //         return response()->json([
+    //             'qr_id' => $qr['id'],
+    //             'status' => $qr['status'],
+    //             'payments' => $qr['payments']['count'],
+    //             'payment_details' => $qr['payments']['items']
+    //         ]);
+    //     }
 
 
 
+
+    //     public function getBookingStatsforAdmin()
+    // {
+    //     // Total number of unique hotels that have bookings
+
+    //     $totalHotels=hotelModel::distinct('hotel_vendor_id')->count('hotel_vendor_id');
+    //     // Total number of paid bookings
+    //     $paidBookings = HoltelBookingModel::where('payment_status', 'paid')->count();
+    //     // Total paid revenue (sum of total_amount where payment_status = paid)
+    //     $totalRevenue = HoltelBookingModel::where('payment_status', 'paid')->sum('total_amount');
+
+    //     // Total bookings (paid + unpaid)
+    //     $totalBookings = HoltelBookingModel::count();
+
+    //     // ✅ Return as JSON (or use in your dashboard)
+    //     return response()->json([
+    //         'total_hotels' => $totalHotels,
+    //         'paid_bookings' => $paidBookings,
+    //         'total_revenue' => $totalRevenue,
+    //         'total_bookings' => $totalBookings,
+
+    //     ]);
+
+
+    // }
+
+
+    public function gethoteldata()
+    {
+        $hotels = hotelModel::all();
+
+        // If you have a lot of data, you can use pagination instead:
+        // $hotels = hotelModel::paginate(10);
+
+        // ✅ Return JSON response
+        return response()->json([
+            'status' => 'success',
+            'total_hotels' => $hotels->count(),
+            'data' => $hotels
+        ], 200);
+    }
+    public function getbookingforDesAdmin()
+    {
+        // Get stats for all vendors (without using vendor id)
+        $totalBookings = HoltelBookingModel::count();
+
+        $totalRevenue = HoltelBookingModel::whereIn('status', ['Confirmed', 'Completed'])
+            ->sum('total_amount');
+
+        $pendingPayments = HoltelBookingModel::where('payment_status', 'Pending')
+            ->sum('total_amount');
+
+        $confirmedBookings = HoltelBookingModel::where('status', 'Confirmed')
+            ->count();
+
+        // Get number of unique hotels with bookings
+        $totalHotels = hotelModel::distinct('hotel_vendor_id')->count('hotel_vendor_id');
+
+        return response()->json([
+            'success'           => true,
+            'total_bookings'    => $totalBookings,
+            'total_revenue'     => $totalRevenue,
+            'pending_payments'  => $pendingPayments,
+            'confirmed'         => $confirmedBookings,
+            'total_hotels'      => $totalHotels
+        ], 200);
+    }
+
+
+    // public function getpaidbooking(){
+    //     $bookings = HoltelBookingModel::where('payment_status', 'paid')
+    //         ->with(['user', 'hotelVendor', 'hotelRoom'])
+    //         ->get();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'paid_bookings' => $bookings,
+    //         'count' => $bookings->count()
+    //     ], 200);
+    // }
+
+    // public function getunpaiddbooking(){
+    //     $bookings = HoltelBookingModel::where('payment_status', '!=', 'paid')
+    //         ->with(['user', 'hotelVendor', 'hotelRoom'])
+    //         ->get();
+
+    //     return response()->json([
+    //         'success' => true,
+    //         'unpaid_bookings' => $bookings,
+    //         'count' => $bookings->count()
+    //     ], 200);
+    // }
+
+
+    public function gethoteldatabydeskboard()
+    {
+        $bookings = HoltelBookingModel::with(['user', 'hotelRoom'])->get();
+        return response()->json($bookings);
+    }
 }
