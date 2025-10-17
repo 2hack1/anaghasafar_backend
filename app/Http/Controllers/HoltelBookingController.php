@@ -749,53 +749,53 @@ class HoltelBookingController extends Controller
     //         ], 500);
     //     }
     // }
-public function checkQRStatus($qrId)
-{
-    try {
-        $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
-        $qr = $api->qrCode->fetch($qrId);
-
+    public function checkQRStatus($qrId)
+    {
         try {
-            // Try fetching linked payments
-            $payments = $api->payment->all(['qr_code_id' => $qrId]);
-        } catch (\Exception $e) {
-            // Handle case when Razorpay says "qr_code_id not required"
-            $payments = ['items' => []];
-        }
+            $api = new \Razorpay\Api\Api(env('RAZORPAY_KEY'), env('RAZORPAY_SECRET'));
+            $qr = $api->qrCode->fetch($qrId);
 
-        $paymentsData = [];
-
-        if (!empty($payments['items']) && count($payments['items']) > 0) {
-            foreach ($payments['items'] as $payment) {
-                $paymentsData[] = [
-                    'transaction_id' => $payment['id'],
-                    'amount'         => $payment['amount'],
-                    'currency'       => $payment['currency'],
-                    'status'         => $payment['status'],
-                    'method'         => $payment['method'],
-                    'order_id'       => $payment['order_id'] ?? null,
-                    'vpa'            => $payment['vpa'] ?? null,
-                    'created_at'     => isset($payment['created_at'])
-                        ? \Carbon\Carbon::createFromTimestamp($payment['created_at'])->toDateTimeString()
-                        : null
-                ];
+            try {
+                // Try fetching linked payments
+                $payments = $api->payment->all(['qr_code_id' => $qrId]);
+            } catch (\Exception $e) {
+                // Handle case when Razorpay says "qr_code_id not required"
+                $payments = ['items' => []];
             }
-        }
 
-        return response()->json([
-            'success'         => true,
-            'qr_id'           => $qr['id'],
-            'qr_status'       => $qr['status'], // active or closed
-            'payments_count'  => count($paymentsData),
-            'payment_details' => $paymentsData
-        ]);
-    } catch (\Exception $e) {
-        return response()->json([
-            'success' => false,
-            'message' => $e->getMessage()
-        ], 500);
+            $paymentsData = [];
+
+            if (!empty($payments['items']) && count($payments['items']) > 0) {
+                foreach ($payments['items'] as $payment) {
+                    $paymentsData[] = [
+                        'transaction_id' => $payment['id'],
+                        'amount'         => $payment['amount'],
+                        'currency'       => $payment['currency'],
+                        'status'         => $payment['status'],
+                        'method'         => $payment['method'],
+                        'order_id'       => $payment['order_id'] ?? null,
+                        'vpa'            => $payment['vpa'] ?? null,
+                        'created_at'     => isset($payment['created_at'])
+                            ? \Carbon\Carbon::createFromTimestamp($payment['created_at'])->toDateTimeString()
+                            : null
+                    ];
+                }
+            }
+
+            return response()->json([
+                'success'         => true,
+                'qr_id'           => $qr['id'],
+                'qr_status'       => $qr['status'], // active or closed
+                'payments_count'  => count($paymentsData),
+                'payment_details' => $paymentsData
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage()
+            ], 500);
+        }
     }
-}
 
 
 
@@ -836,6 +836,7 @@ public function checkQRStatus($qrId)
     //             ];
     //         }
 
+
     //         // Construct fake QR payload (structure similar to real Razorpay qr fetch)
     //         $qr = [
     //             'id' => $qrId,
@@ -862,30 +863,29 @@ public function checkQRStatus($qrId)
 
 
 
-    //     public function getBookingStatsforAdmin()
-    // {
-    //     // Total number of unique hotels that have bookings
+        public function getBookingStatsforAdmin()
+    {
+        // Total number of unique hotels that have bookings
+        $totalHotels=hotelModel::distinct('hotel_vendor_id')->count('hotel_vendor_id');
+        // Total number of paid bookings
+        $paidBookings = HoltelBookingModel::where('payment_status', 'paid')->count();
+        // Total paid revenue (sum of total_amount where payment_status = paid)
+        $totalRevenue = HoltelBookingModel::where('payment_status', 'paid')->sum('total_amount');
 
-    //     $totalHotels=hotelModel::distinct('hotel_vendor_id')->count('hotel_vendor_id');
-    //     // Total number of paid bookings
-    //     $paidBookings = HoltelBookingModel::where('payment_status', 'paid')->count();
-    //     // Total paid revenue (sum of total_amount where payment_status = paid)
-    //     $totalRevenue = HoltelBookingModel::where('payment_status', 'paid')->sum('total_amount');
+        // Total bookings (paid + unpaid)
+        $totalBookings = HoltelBookingModel::count();
 
-    //     // Total bookings (paid + unpaid)
-    //     $totalBookings = HoltelBookingModel::count();
+        // ✅ Return as JSON (or use in your dashboard)
+        return response()->json([
+            'total_hotels' => $totalHotels,
+            'paid_bookings' => $paidBookings,
+            'total_revenue' => $totalRevenue,
+            'total_bookings' => $totalBookings,
 
-    //     // ✅ Return as JSON (or use in your dashboard)
-    //     return response()->json([
-    //         'total_hotels' => $totalHotels,
-    //         'paid_bookings' => $paidBookings,
-    //         'total_revenue' => $totalRevenue,
-    //         'total_bookings' => $totalBookings,
-
-    //     ]);
+        ]);
 
 
-    // }
+    }
 
 
     public function gethoteldata()

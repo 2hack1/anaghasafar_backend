@@ -95,10 +95,10 @@ Route::post('/expire', [HoltelBookingController::class, 'expireQR']);
 Route::get('/check/{qrId}', [HoltelBookingController::class, 'checkQRStatus']);
 
 // admin destionation deskboard hotel data **************************************
-Route::get('/get/hoteldesk/admin', [HoltelBookingController::class, 'getBookingStatsforAdmin']);
-Route::get('/hotels', [HoltelBookingController::class, 'getHotelData']);
+Route::get('/hotels', [HoltelBookingController::class, 'getHotelData']);  
 Route::get('/paid/booking', [HoltelBookingController::class, 'getbookingforDesAdmin']);
 Route::get('/unpaid/booking', [HoltelBookingController::class, 'gethoteldatabydeskboard']);
+Route::get('/chek/admin', [HoltelBookingController::class, 'getBookingStatsforAdmin']);
 
 
 
