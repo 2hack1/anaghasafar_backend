@@ -100,7 +100,7 @@ Route::get('/paid/booking', [HoltelBookingController::class, 'getbookingforDesAd
 Route::get('/unpaid/booking', [HoltelBookingController::class, 'gethoteldatabydeskboard']);
 Route::get('/chek/admin', [HoltelBookingController::class, 'getBookingStatsforAdmin']);
 
-
+   
 
 Route::get('/users/{id}', [UserController::class, 'show']);
 Route::get('/vendors', [VendorBankDetailsController::class, 'index']);
